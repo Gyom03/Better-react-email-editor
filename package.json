@@ -1,6 +1,6 @@
 {
   "name": "better-react-email-editor",
-  "version": "0.1.0",
+  "version": "0.1.1",
   "description": "Drag & drop email builder for React (Unlayer-style), built on @react-email/editor. Modular components, English and French included.",
   "keywords": [
     "react",
