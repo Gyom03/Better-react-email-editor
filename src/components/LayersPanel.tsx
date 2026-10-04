@@ -17,10 +17,12 @@ export interface LayersPanelProps extends StyleProps {
   onClose?: () => void;
   /** Panel title. Defaults to the localized "Layers". */
   title?: string;
+  /** Shows the "Expand all" / "Collapse all" buttons in the header. Default: true. */
+  expandCollapseButtons?: boolean;
 }
 
 /** Tree of the email (Photoshop-like layers): select, hover, reorder and nest blocks by drag & drop. */
-export function LayersPanel({ onClose, title, className, style }: LayersPanelProps) {
+export function LayersPanel({ onClose, title, expandCollapseButtons = true, className, style }: LayersPanelProps) {
   const { editor, t, locale, nodes, nodeLabel, dragSession, hoverStore } = useEmailEditor();
   const itemLabel = (item: LayerItem) =>
     item.node.type.name === 'columnsColumn' ? t.layers.column(item.index) : nodeLabel(item.node.type.name);
@@ -188,26 +190,30 @@ export function LayersPanel({ onClose, title, className, style }: LayersPanelPro
         <header className="bree-layers-header">
           <h2>{title ?? t.layers.title}</h2>
           <div className="bree-layers-actions">
-            <button type="button" className="bree-icon-button bree-small" title={t.layers.expandAll} onClick={() => setCollapsed(new Set())}>
-              ⊞
-            </button>
-            <button
-              type="button"
-              className="bree-icon-button bree-small"
-              title={t.layers.collapseAll}
-              onClick={() => {
-                const keys = new Set<string>();
-                const walk = (items: LayerItem[]) =>
-                  items.forEach((i) => {
-                    if (i.children.length) keys.add(i.key);
-                    walk(i.children);
-                  });
-                walk(layers);
-                setCollapsed(keys);
-              }}
-            >
-              ⊟
-            </button>
+            {expandCollapseButtons && (
+              <>
+                <button type="button" className="bree-icon-button bree-small" title={t.layers.expandAll} onClick={() => setCollapsed(new Set())}>
+                  ⊞
+                </button>
+                <button
+                  type="button"
+                  className="bree-icon-button bree-small"
+                  title={t.layers.collapseAll}
+                  onClick={() => {
+                    const keys = new Set<string>();
+                    const walk = (items: LayerItem[]) =>
+                      items.forEach((i) => {
+                        if (i.children.length) keys.add(i.key);
+                        walk(i.children);
+                      });
+                    walk(layers);
+                    setCollapsed(keys);
+                  }}
+                >
+                  ⊟
+                </button>
+              </>
+            )}
             {onClose && (
               <button type="button" className="bree-icon-button bree-small" title={t.layers.close} onClick={onClose}>
                 <XIcon size={14} />

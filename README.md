@@ -128,7 +128,7 @@ Every component below accepts `className` and `style`, and must be rendered insi
 | `TopBar` | Top bar: desktop / mobile toggle and the export button. Props: `brand` (left side, empty by default), `actions` (extra controls before the export button), or `children` to replace its content. |
 | `DeviceToggle`, `ExportHtmlButton` | The default top bar controls. |
 | `LayersToggle`, `UndoRedo`, `TemplateButton`, `ImportButton`, `ExportJsonButton`, `PreviewButton` | Optional controls, not shown by default: add them through `actions` or your own bar. |
-| `LayersPanel` | Layers tree. Props: `title`, and `onClose` to show a close button. |
+| `LayersPanel` | Layers tree. Props: `title`, `onClose` to show a close button, and `expandCollapseButtons={false}` to hide the expand / collapse all buttons. |
 | `Sidebar` | Right panel. Switches between three screens; override any of them with `renderDocument`, `renderNode` or `renderText`. |
 | `ContentPanel` | Screen shown when nothing is selected: tabs. Prop `tabs` picks or reorders `'content' \| 'blocks' \| 'body'` and accepts your own tabs. |
 | `ContentTab` / `PaletteTile` | Palette of draggable tiles. |
