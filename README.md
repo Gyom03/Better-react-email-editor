@@ -1,8 +1,21 @@
-# better-react-email-editor
+<h1 align="center">Better React Email Editor</h1>
 
-**A drag & drop email builder that runs inside your React app.**
+<p align="center">Open-source drag &amp; drop email builder for React, built on <a href="https://www.npmjs.com/package/@react-email/editor">@react-email/editor</a>.</p>
 
-Your users build emails visually, the way they would in [Unlayer](https://unlayer.com): they drag blocks into a layout, edit text in place and adjust styles from a side panel. Your app gets the email back as JSON, to store and reload, and as email-ready HTML (table layout, inline styles) to send. The editor renders directly in your page, not in an iframe, and is built on [`@react-email/editor`](https://www.npmjs.com/package/@react-email/editor) (Tiptap / ProseMirror for editing, React Email for the HTML).
+<p align="center">
+  <a href="https://www.npmjs.com/package/better-react-email-editor"><img src="https://img.shields.io/npm/v/better-react-email-editor?color=0a7ea4" alt="npm version"></a>
+  <a href="./LICENSE"><img src="https://img.shields.io/npm/l/better-react-email-editor?color=4c9a2a" alt="MIT license"></a>
+  <a href="https://www.npmjs.com/package/better-react-email-editor"><img src="https://img.shields.io/npm/dm/better-react-email-editor?color=4c9a2a" alt="npm downloads"></a>
+  <a href="https://github.com/Gyom03/Better-react-email-editor"><img src="https://img.shields.io/github/stars/Gyom03/Better-react-email-editor?color=0a7ea4" alt="GitHub stars"></a>
+</p>
+
+---
+
+## Introduction
+
+Add a visual email builder to your React app. Your users drag blocks into a layout, edit text in place and adjust styles from a side panel. Your app gets the email back as JSON, to save and reload, and as email-ready HTML (table layout, inline styles), to send.
+
+It works like [Unlayer](https://unlayer.com), but it is open source and renders directly in your page: no iframe, no hosted service. Every part of the interface is a React component that you can restyle, replace or rearrange.
 
 [![Demo: place an image, edit a heading, export the HTML](./docs/demo.webp)](./docs/demo.mp4)
 
