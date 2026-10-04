@@ -1,0 +1,37 @@
+import { chromium } from 'playwright-core';
+import { mkdirSync } from 'node:fs';
+const OUT = process.env.OUT ?? 'screenshots';
+mkdirSync(OUT, { recursive: true });
+const browser = await chromium.launch({ channel: 'msedge', headless: true });
+const page = await browser.newPage({ viewport: { width: 1440, height: 900 } });
+page.on('pageerror', (e) => console.log('[pageerror]', e.message));
+await page.goto(process.env.BASE_URL ?? 'http://localhost:5179', { waitUntil: 'networkidle' });
+await page.waitForTimeout(600);
+const center = async (l) => { const b = await l.boundingBox(); return { x: b.x + b.width / 2, y: b.y + b.height / 2, b }; };
+// Drag "Produit A" image directly below the "Produit B" heading (cross-column move)
+const img = await center(page.locator('.tiptap img[src*="Produit%20A"]'));
+const h3 = await center(page.locator('.tiptap h3', { hasText: 'Produit B' }));
+await page.mouse.move(img.x, img.y);
+await page.mouse.down();
+await page.mouse.move(img.x + 20, img.y + 10, { steps: 4 });
+await page.mouse.move(h3.x, h3.b.y + h3.b.height + 2, { steps: 20 });
+await page.waitForTimeout(150);
+await page.mouse.move(h3.x + 1, h3.b.y + h3.b.height + 2);
+await page.waitForTimeout(150);
+await page.screenshot({ path: `${OUT}/40-drag-image.png` });
+await page.mouse.up();
+await page.waitForTimeout(300);
+const cols = await page.locator('.tiptap [data-type="two-columns"]').nth(1).locator('.node-column').evaluateAll((cs) => cs.map((c) => c.querySelectorAll('img').length));
+console.log('images per column:', cols);
+// Escape walks up then deselects
+await page.keyboard.press('Escape');
+await page.waitForTimeout(150);
+console.log('after Esc 1:', await page.locator('.properties-header h2').textContent().catch(() => 'palette'));
+await page.keyboard.press('Escape');
+await page.waitForTimeout(150);
+console.log('after Esc 2:', await page.locator('.properties-header h2').textContent().catch(() => 'palette'));
+await page.keyboard.press('Escape');
+await page.waitForTimeout(150);
+console.log('after Esc 3:', await page.locator('.properties-header h2').count() ? 'still selected' : 'palette');
+await page.screenshot({ path: `${OUT}/41-after-esc.png` });
+await browser.close();
