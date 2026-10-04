@@ -1,5 +1,6 @@
 import { useEditorState } from '@tiptap/react';
 import type { Editor } from '@tiptap/core';
+import { NodeSelection } from '@tiptap/pm/state';
 import { EditorFocusScope, PlusIcon } from '@react-email/editor/ui';
 import { useCallback, useEffect, useLayoutEffect, useRef, useState, useSyncExternalStore, type DragEvent as ReactDragEvent } from 'react';
 import { useEmailEditor } from '../context';
@@ -157,7 +158,15 @@ export function CanvasOverlay({ editor, host }: { editor: Editor; host: HTMLElem
       if (unit && isStructuralUnit(unit)) {
         event.preventDefault();
         selectUnit(editor, unit);
+        return;
       }
+      // A block can stay node-selected after the editor lost focus (deselect,
+      // or a document starting with an image). Clicking it again changes
+      // nothing for ProseMirror, so it never writes the selection back to the
+      // DOM and Chrome's own caret wins: it lands in the next text, e.g. the
+      // hidden empty paragraph after a lone image. Focusing first puts the node
+      // selection in the DOM, and Chrome keeps a selection clicked from inside.
+      if (!editor.isFocused && editor.state.selection instanceof NodeSelection) editor.view.focus();
     };
     const onPaste = (event: ClipboardEvent) => {
       if (editor.view.dom.contains(event.target as Node)) handleCanvasPaste(editor, event);
