@@ -1,8 +1,10 @@
-import { useCurrentEditor, useEditorState } from '@tiptap/react';
+import { useEditorState } from '@tiptap/react';
 import type { Editor } from '@tiptap/core';
 import { EditorFocusScope, PlusIcon } from '@react-email/editor/ui';
-import { useCallback, useEffect, useState, useSyncExternalStore, type DragEvent as ReactDragEvent } from 'react';
-import { createPortal } from 'react-dom';
+import { useCallback, useEffect, useLayoutEffect, useRef, useState, useSyncExternalStore, type DragEvent as ReactDragEvent } from 'react';
+import { useEmailEditor } from '../context';
+import { cx } from '../core/cx';
+import type { Messages } from '../i18n';
 import {
   applyDrop,
   BLOCK_CONTAINERS,
@@ -10,20 +12,18 @@ import {
   type BlockUnit,
   deleteUnit,
   DND_MIME,
-  dragSession,
   type DropTarget,
   duplicateUnit,
   findDropTarget,
-  hoverStore,
   isFixedUnit,
   parentUnit,
   payloadFragment,
   selectedUnit,
   selectUnit,
   unitAt,
-} from './dnd';
-import { nodeLabel } from './node-labels';
-import { handleCanvasPaste } from './paste';
+} from '../core/dnd';
+import { handleCanvasPaste } from '../core/paste';
+import { CopyIcon, GripIcon, ParentIcon, TrashIcon } from './icons';
 
 interface Box {
   top: number;
@@ -61,56 +61,18 @@ function isStructuralUnit(unit: BlockUnit) {
   return BLOCK_CONTAINERS.has(type) || COLUMN_PARENTS.has(type);
 }
 
-const GripIcon = () => (
-  <svg viewBox="0 0 24 24" width="14" height="14" fill="currentColor" aria-hidden>
-    {[6, 12, 18].map((y) => (
-      <g key={y}>
-        <circle cx="9" cy={y} r="1.6" />
-        <circle cx="15" cy={y} r="1.6" />
-      </g>
-    ))}
-  </svg>
-);
-const CopyIcon = () => (
-  <svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" strokeWidth="2" aria-hidden>
-    <rect x="8" y="8" width="12" height="12" rx="2" />
-    <path d="M16 8V6a2 2 0 0 0-2-2H6a2 2 0 0 0-2 2v8a2 2 0 0 0 2 2h2" />
-  </svg>
-);
-const TrashIcon = () => (
-  <svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" aria-hidden>
-    <path d="M4 7h16M10 11v6M14 11v6M6 7l1 12a2 2 0 0 0 2 2h6a2 2 0 0 0 2-2l1-12M9 7V4h6v3" />
-  </svg>
-);
-const ParentIcon = () => (
-  <svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" aria-hidden>
-    <path d="M12 19V5M6 11l6-6 6 6" />
-  </svg>
-);
-
 /**
  * Everything drawn on top of the canvas: hover outline, selection frame with
  * its toolbar, and the drop indicator. Also owns the drag & drop listeners for
- * the canvas so ProseMirror never sees our custom drags.
+ * the canvas so ProseMirror never sees our custom drags. Rendered by `Canvas`.
  */
-export function CanvasOverlay() {
-  const { editor } = useCurrentEditor();
-  const [host, setHost] = useState<HTMLElement | null>(null);
-
-  useEffect(() => {
-    if (!editor) return;
-    const find = () => setHost(editor.view.dom.closest<HTMLElement>('.canvas'));
-    find();
-    // The editor DOM is mounted into the canvas right after creation.
-    const id = requestAnimationFrame(find);
-    return () => cancelAnimationFrame(id);
-  }, [editor]);
-
-  if (!editor || !host) return null;
-  return createPortal(<OverlayLayer editor={editor} host={host} />, host);
-}
-
-function OverlayLayer({ editor, host }: { editor: Editor; host: HTMLElement }) {
+export function CanvasOverlay({ editor, host }: { editor: Editor; host: HTMLElement }) {
+  const { dragSession, hoverStore, nodeLabel, t } = useEmailEditor();
+  // Read from listeners attached once per editor/host.
+  const labelRef = useRef(nodeLabel);
+  useLayoutEffect(() => {
+    labelRef.current = nodeLabel;
+  });
   // Hover lives in a shared store so the layers panel can drive it too.
   const hoverPos = useSyncExternalStore(hoverStore.subscribe, hoverStore.get);
   const hoverNode = hoverPos !== null ? editor.state.doc.nodeAt(hoverPos) : null;
@@ -118,7 +80,7 @@ function OverlayLayer({ editor, host }: { editor: Editor; host: HTMLElement }) {
   const [drop, setDrop] = useState<DropTarget | null>(null);
   const [dragging, setDragging] = useState<number | null>(null);
   const [, setLayoutTick] = useState(0);
-  const relayout = useCallback(() => setLayoutTick((t) => t + 1), []);
+  const relayout = useCallback(() => setLayoutTick((tick) => tick + 1), []);
 
   // Selection (re-rendered on every selection / focus change).
   const selection = useEditorState({
@@ -150,14 +112,14 @@ function OverlayLayer({ editor, host }: { editor: Editor; host: HTMLElement }) {
       host.removeEventListener('load', onUpdate, true);
       window.removeEventListener('resize', onUpdate);
     };
-  }, [editor, host, relayout]);
+  }, [editor, host, relayout, hoverStore]);
 
   // Hover tracking.
   useEffect(() => {
     let frame = 0;
     const onMove = (event: MouseEvent) => {
       if (dragSession.get()) return;
-      if ((event.target as HTMLElement).closest('.ov-toolbar, .ov-handle, .ov-tag')) return;
+      if ((event.target as HTMLElement).closest('.bree-ov-toolbar, .bree-ov-handle, .bree-ov-tag')) return;
       cancelAnimationFrame(frame);
       frame = requestAnimationFrame(() => {
         hoverStore.set(unitAtPoint(editor, event.clientX, event.clientY)?.pos ?? null);
@@ -171,7 +133,7 @@ function OverlayLayer({ editor, host }: { editor: Editor; host: HTMLElement }) {
       host.removeEventListener('mousemove', onMove);
       host.removeEventListener('mouseleave', onLeave);
     };
-  }, [editor, host]);
+  }, [editor, host, dragSession, hoverStore]);
 
   // Clicks follow what the hover frame shows:
   // - empty canvas around the email -> deselect (back to the palette);
@@ -182,8 +144,9 @@ function OverlayLayer({ editor, host }: { editor: Editor; host: HTMLElement }) {
   useEffect(() => {
     const onDown = (event: MouseEvent) => {
       if (event.button !== 0 || event.shiftKey || event.metaKey || event.ctrlKey) return;
-      if ((event.target as HTMLElement).closest('.ov-layer')) return;
-      if (event.target === host || event.target === editor.view.dom) {
+      if ((event.target as HTMLElement).closest('.bree-ov-layer')) return;
+      const background = [host, editor.view.dom, editor.view.dom.parentElement];
+      if (background.includes(event.target as HTMLElement)) {
         event.preventDefault();
         const active = document.activeElement;
         if (active instanceof HTMLElement) active.blur();
@@ -275,7 +238,7 @@ function OverlayLayer({ editor, host }: { editor: Editor; host: HTMLElement }) {
       const pos = editor.view.posAtDOM(target, 0);
       const unit = unitAt(editor.state.doc, pos);
       if (!unit || isFixedUnit(unit)) return;
-      dragSession.start({ kind: 'move', pos: unit.pos, label: nodeLabel(unit.node.type.name) });
+      dragSession.start({ kind: 'move', pos: unit.pos, label: labelRef.current(unit.node.type.name) });
       requestAnimationFrame(() => setDragging(unit.pos));
     };
     const onKeyDown = (event: KeyboardEvent) => {
@@ -307,7 +270,7 @@ function OverlayLayer({ editor, host }: { editor: Editor; host: HTMLElement }) {
       host.removeEventListener('dragleave', onDragLeave, true);
       document.removeEventListener('dragend', onDragEnd);
     };
-  }, [editor, host]);
+  }, [editor, host, dragSession, hoverStore]);
 
   const startMove = (event: ReactDragEvent, unit: BlockUnit) => {
     const dom = editor.view.nodeDOM(unit.pos);
@@ -330,12 +293,12 @@ function OverlayLayer({ editor, host }: { editor: Editor; host: HTMLElement }) {
   const parent = selected ? parentUnit(editor.state.doc, selected) : null;
 
   return (
-    <div className="ov-layer" aria-hidden={false}>
+    <div className="bree-ov-layer">
       {hoverBox && hover && (
-        <div className={`ov-frame ov-hover ${isDragging ? 'ov-ghost' : ''}`} style={hoverBox}>
+        <div className={cx('bree-ov-frame bree-ov-hover', isDragging && 'bree-ov-ghost')} style={hoverBox}>
           <button
             type="button"
-            className="ov-tag"
+            className="bree-ov-tag"
             onMouseDown={(e) => {
               e.preventDefault();
               selectUnit(editor, hover);
@@ -347,20 +310,20 @@ function OverlayLayer({ editor, host }: { editor: Editor; host: HTMLElement }) {
       )}
 
       {selectedBox && selected && (
-        <div className={`ov-frame ov-selected ${isDragging ? 'ov-ghost' : ''}`} style={selectedBox}>
-          <span className="ov-tag ov-tag-selected">{nodeLabel(selected.node.type.name)}</span>
+        <div className={cx('bree-ov-frame bree-ov-selected', isDragging && 'bree-ov-ghost')} style={selectedBox}>
+          <span className="bree-ov-tag bree-ov-tag-selected">{nodeLabel(selected.node.type.name)}</span>
           {!isFixedUnit(selected) && (
             // Focusable and registered as a focus scope: pressing it keeps the
             // editor "focused" (so the selection, and this handle, survive), and
             // no preventDefault on mousedown, which would cancel the native drag.
             <EditorFocusScope>
               <span
-                className="ov-handle"
+                className="bree-ov-handle"
                 role="button"
                 tabIndex={-1}
                 draggable
-                title="Glisser pour déplacer"
-                aria-label={`Déplacer : ${nodeLabel(selected.node.type.name)}`}
+                title={t.canvas.move}
+                aria-label={t.canvas.moveLabel(nodeLabel(selected.node.type.name))}
                 onDragStart={(e) => startMove(e, selected)}
               >
                 <GripIcon />
@@ -368,18 +331,18 @@ function OverlayLayer({ editor, host }: { editor: Editor; host: HTMLElement }) {
             </EditorFocusScope>
           )}
           <EditorFocusScope>
-            <div className="ov-toolbar" onMouseDown={(e) => e.preventDefault()}>
+            <div className="bree-ov-toolbar" onMouseDown={(e) => e.preventDefault()}>
               {parent && (
-                <button type="button" className="ov-tool" title={`Sélectionner : ${nodeLabel(parent.node.type.name)}`} onClick={() => selectUnit(editor, parent)}>
+                <button type="button" className="bree-ov-tool" title={t.canvas.selectParent(nodeLabel(parent.node.type.name))} onClick={() => selectUnit(editor, parent)}>
                   <ParentIcon />
                 </button>
               )}
               {!isFixedUnit(selected) && (
                 <>
-                  <button type="button" className="ov-tool" title="Dupliquer" onClick={() => duplicateUnit(editor, selected)}>
+                  <button type="button" className="bree-ov-tool" title={t.canvas.duplicate} onClick={() => duplicateUnit(editor, selected)}>
                     <CopyIcon />
                   </button>
-                  <button type="button" className="ov-tool ov-danger" title="Supprimer" onClick={() => deleteUnit(editor, selected)}>
+                  <button type="button" className="bree-ov-tool bree-ov-danger" title={t.canvas.delete} onClick={() => deleteUnit(editor, selected)}>
                     <TrashIcon />
                   </button>
                 </>
@@ -389,20 +352,20 @@ function OverlayLayer({ editor, host }: { editor: Editor; host: HTMLElement }) {
         </div>
       )}
 
-      {sourceBox && <div className="ov-frame ov-source" style={sourceBox} />}
+      {sourceBox && <div className="bree-ov-frame bree-ov-source" style={sourceBox} />}
 
-      {drop && <DropIndicator host={host} target={drop} label={dragSession.get()?.label ?? ''} />}
+      {drop && <DropIndicator host={host} target={drop} label={dragSession.get()?.label ?? ''} messages={t} />}
     </div>
   );
 }
 
-function DropIndicator({ host, target, label }: { host: HTMLElement; target: DropTarget; label: string }) {
+function DropIndicator({ host, target, label, messages }: { host: HTMLElement; target: DropTarget; label: string; messages: Messages }) {
   if (target.emptyZone) {
     const zone = toLocal(host, target.emptyZone);
     return (
-      <div className="ov-dropzone" style={zone}>
+      <div className="bree-ov-dropzone" style={zone}>
         <span>
-          <PlusIcon size={14} /> Déposer {label ? `« ${label} »` : ''} ici
+          <PlusIcon size={14} /> {messages.canvas.dropLabel(label)}
         </span>
       </div>
     );
@@ -410,8 +373,8 @@ function DropIndicator({ host, target, label }: { host: HTMLElement; target: Dro
   if (!target.line) return null;
   const line = toLocal(host, { ...target.line, height: 0 });
   return (
-    <div className="ov-dropline" style={{ top: line.top, left: line.left, width: line.width }}>
-      <span className="ov-dropline-label">Déposer ici</span>
+    <div className="bree-ov-dropline" style={{ top: line.top, left: line.left, width: line.width }}>
+      <span className="bree-ov-dropline-label">{messages.canvas.dropHere}</span>
     </div>
   );
 }

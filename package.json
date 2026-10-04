@@ -1,33 +1,76 @@
 {
-  "name": "app",
-  "private": true,
-  "version": "0.0.0",
+  "name": "better-react-email-editor",
+  "version": "0.1.0",
+  "description": "Drag & drop email builder for React (Unlayer-style), built on @react-email/editor. Modular components, English and French included.",
+  "keywords": [
+    "react",
+    "email",
+    "email-editor",
+    "email-builder",
+    "drag-and-drop",
+    "react-email",
+    "tiptap",
+    "unlayer"
+  ],
   "type": "module",
+  "main": "./dist/index.cjs",
+  "module": "./dist/index.js",
+  "types": "./dist/types/index.d.ts",
+  "exports": {
+    ".": {
+      "types": "./dist/types/index.d.ts",
+      "import": "./dist/index.js",
+      "require": "./dist/index.cjs"
+    },
+    "./styles.css": "./dist/styles.css",
+    "./package.json": "./package.json"
+  },
+  "files": [
+    "dist"
+  ],
+  "sideEffects": [
+    "**/*.css"
+  ],
   "scripts": {
     "dev": "vite",
-    "build": "tsc -b && vite build",
+    "build": "vite build -c vite.lib.config.ts && tsc -p tsconfig.build.json && node -e \"require('fs').copyFileSync('src/styles.css','dist/styles.css')\"",
+    "build:playground": "vite build",
+    "typecheck": "tsc -b",
     "lint": "oxlint",
-    "preview": "vite preview"
+    "preview": "vite preview",
+    "prepublishOnly": "npm run typecheck && npm run build"
+  },
+  "peerDependencies": {
+    "@react-email/editor": "^1.7.11",
+    "@tiptap/core": "^3.17.1",
+    "@tiptap/extension-placeholder": "^3.17.1",
+    "@tiptap/html": "^3.17.1",
+    "@tiptap/pm": "^3.17.1",
+    "@tiptap/react": "^3.17.1",
+    "react": "^18.2.0 || ^19.0.0",
+    "react-dom": "^18.2.0 || ^19.0.0",
+    "react-email": "^6.11.0"
   },
   "dependencies": {
     "@radix-ui/react-popover": "^1.1.23",
+    "react-colorful": "^5.8.1"
+  },
+  "devDependencies": {
     "@react-email/editor": "^1.7.11",
     "@tiptap/core": "^3.31.4",
     "@tiptap/extension-placeholder": "^3.31.4",
+    "@tiptap/html": "^3.31.4",
     "@tiptap/pm": "^3.31.4",
     "@tiptap/react": "^3.31.4",
-    "react": "^19.2.8",
-    "react-colorful": "^5.8.1",
-    "react-dom": "^19.2.8",
-    "react-email": "^6.11.0"
-  },
-  "devDependencies": {
     "@types/node": "^24.13.3",
     "@types/react": "^19.2.18",
     "@types/react-dom": "^19.2.7",
     "@vitejs/plugin-react": "^6.1.1",
     "oxlint": "^1.81.0",
     "playwright-core": "^1.63.0",
+    "react": "^19.2.8",
+    "react-dom": "^19.2.8",
+    "react-email": "^6.11.0",
     "typescript": "~6.0.2",
     "vite": "^8.3.0"
   }

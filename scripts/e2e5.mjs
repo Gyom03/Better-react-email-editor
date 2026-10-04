@@ -5,7 +5,7 @@ mkdirSync(OUT, { recursive: true });
 const browser = await chromium.launch({ channel: 'msedge', headless: true });
 const page = await browser.newPage({ viewport: { width: 1440, height: 900 } });
 page.on('pageerror', (e) => console.log('[pageerror]', e.message));
-await page.goto(process.env.BASE_URL ?? 'http://localhost:5179', { waitUntil: 'networkidle' });
+await page.goto(process.env.BASE_URL ?? 'http://localhost:5179/?lang=fr', { waitUntil: 'networkidle' });
 await page.waitForTimeout(600);
 const center = async (l) => { const b = await l.boundingBox(); return { x: b.x + b.width / 2, y: b.y + b.height / 2, b }; };
 // Drag "Produit A" image directly below the "Produit B" heading (cross-column move)
@@ -26,12 +26,12 @@ console.log('images per column:', cols);
 // Escape walks up then deselects
 await page.keyboard.press('Escape');
 await page.waitForTimeout(150);
-console.log('after Esc 1:', await page.locator('.properties-header h2').textContent().catch(() => 'palette'));
+console.log('after Esc 1:', await page.locator('.bree-properties-header h2').textContent().catch(() => 'palette'));
 await page.keyboard.press('Escape');
 await page.waitForTimeout(150);
-console.log('after Esc 2:', await page.locator('.properties-header h2').textContent().catch(() => 'palette'));
+console.log('after Esc 2:', await page.locator('.bree-properties-header h2').textContent().catch(() => 'palette'));
 await page.keyboard.press('Escape');
 await page.waitForTimeout(150);
-console.log('after Esc 3:', await page.locator('.properties-header h2').count() ? 'still selected' : 'palette');
+console.log('after Esc 3:', await page.locator('.bree-properties-header h2').count() ? 'still selected' : 'palette');
 await page.screenshot({ path: `${OUT}/41-after-esc.png` });
 await browser.close();

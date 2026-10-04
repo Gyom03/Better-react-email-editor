@@ -6,7 +6,7 @@ const browser = await chromium.launch({ channel: 'msedge', headless: true });
 const page = await browser.newPage({ viewport: { width: 1440, height: 900 } });
 page.on('pageerror', (e) => console.log('[pageerror]', e.message));
 page.on('console', (m) => m.type() === 'error' && console.log('[console]', m.text()));
-await page.goto(process.env.BASE_URL ?? 'http://localhost:5179', { waitUntil: 'networkidle' });
+await page.goto(process.env.BASE_URL ?? 'http://localhost:5179/?lang=fr', { waitUntil: 'networkidle' });
 await page.waitForTimeout(600);
 const shot = (name) => page.screenshot({ path: `${OUT}/${name}.png` });
 const center = async (locator) => { const b = await locator.boundingBox(); return { x: b.x + b.width / 2, y: b.y + b.height / 2, b }; };
@@ -19,7 +19,7 @@ await page.waitForTimeout(200);
 await shot('01-hover');
 
 // 2. Drag the "Bouton" tile right under the heading
-const tile = page.locator('.tile', { hasText: 'Bouton' });
+const tile = page.locator('.bree-tile', { hasText: 'Bouton' });
 const tc = await center(tile);
 await page.mouse.move(tc.x, tc.y);
 await page.mouse.down();
@@ -36,16 +36,16 @@ await shot('03-dropped');
 console.log('buttons after drop:', await page.locator('.tiptap a.node-button').count());
 
 // 3. Drop an image into an empty column: first add a 2-col layout at the end by click
-await page.locator('.sidebar .icon-button[title^="Fermer"]').click();
+await page.locator('.bree-sidebar .bree-icon-button[title^="Fermer"]').click();
 await page.waitForTimeout(200);
-await page.locator('.tile', { hasText: '2 colonnes' }).click();
+await page.locator('.bree-tile', { hasText: '2 colonnes' }).click();
 await page.waitForTimeout(300);
-await page.locator('.sidebar .icon-button[title^="Fermer"]').click();
+await page.locator('.bree-sidebar .bree-icon-button[title^="Fermer"]').click();
 await page.waitForTimeout(200);
 const emptyCol = page.locator('.tiptap .node-column').last();
 await emptyCol.scrollIntoViewIfNeeded();
 const ec = await center(emptyCol);
-const imgTile = await center(page.locator('.tile', { hasText: 'Image' }));
+const imgTile = await center(page.locator('.bree-tile', { hasText: 'Image' }));
 await page.mouse.move(imgTile.x, imgTile.y);
 await page.mouse.down();
 await page.mouse.move(ec.x, ec.y, { steps: 20 });
@@ -58,15 +58,15 @@ await page.waitForTimeout(400);
 await shot('05-dropped-in-column');
 
 // 4. Move the hero section to the top using the hover handle
-await page.locator('.canvas').evaluate((el) => (el.scrollTop = 0));
+await page.locator('.bree-canvas').evaluate((el) => (el.scrollTop = 0));
 await page.waitForTimeout(200);
 // Select the hero section (click its text, Escape -> parent) to get its handle
 await page.locator('.tiptap p', { hasText: 'Découvrez' }).click();
 await page.waitForTimeout(200);
 await page.keyboard.press('Escape');
 await page.waitForTimeout(250);
-const handle = page.locator('.ov-selected .ov-handle');
-console.log('handle visible:', await handle.isVisible(), '| panel:', await page.locator('.properties-header h2').textContent().catch(() => '-'), '| frame:', await page.locator('.ov-selected').getAttribute('class').catch(() => 'none'), '| active:', await page.evaluate(() => document.activeElement?.className));
+const handle = page.locator('.bree-ov-selected .bree-ov-handle');
+console.log('handle visible:', await handle.isVisible(), '| panel:', await page.locator('.bree-properties-header h2').textContent().catch(() => '-'), '| frame:', await page.locator('.bree-ov-selected').getAttribute('class').catch(() => 'none'), '| active:', await page.evaluate(() => document.activeElement?.className));
 const hd = await center(handle);
 console.log('handle box', hd.b);
 const logo = await center(page.locator('.tiptap img').first());

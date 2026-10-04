@@ -8,9 +8,9 @@ const context = await browser.newContext({ viewport: { width: 1440, height: 900 
 const page = await context.newPage();
 page.on('pageerror', (e) => console.log('[pageerror]', e.message));
 page.on('console', (m) => m.type() === 'error' && console.log('[console]', m.text().slice(0, 200)));
-await page.goto(process.env.BASE_URL ?? 'http://localhost:5179', { waitUntil: 'networkidle' });
+await page.goto(process.env.BASE_URL ?? 'http://localhost:5179/?lang=fr', { waitUntil: 'networkidle' });
 await page.waitForTimeout(600);
-const layer = (label, preview) => page.locator('.layer', { has: page.locator('.layer-label', { hasText: label }), ...(preview ? { hasText: preview } : {}) }).first();
+const layer = (label, preview) => page.locator('.bree-layer', { has: page.locator('.bree-layer-label', { hasText: label }), ...(preview ? { hasText: preview } : {}) }).first();
 const pick = async (label, preview) => { await layer(label, preview).click(); await page.waitForTimeout(150); };
 const top = () => page.evaluate(() => [...document.querySelector('.tiptap .node-container').children].map((k) => (k.getAttribute('data-type') || k.tagName.toLowerCase()) + ':' + (k.textContent || '').trim().slice(0, 14)));
 const count = (sel) => page.locator(sel).count();
@@ -63,7 +63,7 @@ const hrsCut = await count('.tiptap hr');
 await pick('Titre', 'Nos coups');
 await key('Control+v');
 console.log('E cut ->', hrs0, '→', hrsCut, '→', await count('.tiptap hr'), '| heading kept:', await count('.tiptap h2:has-text("Nos coups")'));
-console.log('stray empty paragraphs:', (await page.locator('.layer-preview').allTextContents()).filter((t) => t === 'vide').length);
+console.log('stray empty paragraphs:', (await page.locator('.bree-layer-preview').allTextContents()).filter((t) => t === 'vide').length);
 
 await page.screenshot({ path: `${OUT}/90-paste.png` });
 await browser.close();

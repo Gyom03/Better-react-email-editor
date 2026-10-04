@@ -15,6 +15,10 @@
     "moduleDetection": "force",
     "noEmit": true,
     "jsx": "react-jsx",
+    "paths": {
+      "better-react-email-editor": ["./src/index.ts"],
+      "better-react-email-editor/styles.css": ["./src/styles.css"]
+    },
 
     /* Linting */
     "noUnusedLocals": true,
@@ -22,5 +26,5 @@
     "erasableSyntaxOnly": true,
     "noFallthroughCasesInSwitch": true
   },
-  "include": ["src"]
+  "include": ["src", "playground"]
 }

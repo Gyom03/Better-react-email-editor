@@ -2,35 +2,50 @@ import * as Popover from '@radix-ui/react-popover';
 import { useEffect, useRef, useState, type ReactNode } from 'react';
 import { HexColorInput, HexColorPicker } from 'react-colorful';
 import { AlignCenterIcon, AlignLeftIcon, AlignRightIcon, EditorFocusScope } from '@react-email/editor/ui';
+import { useMessages } from '../context';
+import { cx, type StyleProps } from '../core/cx';
+import { PipetteIcon } from './icons';
 
-export function Group({
-  title,
-  children,
-  defaultOpen = true,
-}: {
+/**
+ * Form controls of the properties panel. Exported so custom inspectors look
+ * like the built-in ones. Text-like inputs commit on blur / Enter to avoid
+ * spamming editor transactions.
+ */
+
+export interface GroupProps extends StyleProps {
   title: string;
   children: ReactNode;
   defaultOpen?: boolean;
-}) {
+}
+
+/** Collapsible section of the properties panel. */
+export function Group({ title, children, defaultOpen = true, className, style }: GroupProps) {
   const [open, setOpen] = useState(defaultOpen);
   return (
-    <section className="group">
-      <button type="button" className="group-header" onClick={() => setOpen(!open)} aria-expanded={open}>
+    <section className={cx('bree-group', className)} style={style}>
+      <button type="button" className="bree-group-header" onClick={() => setOpen(!open)} aria-expanded={open}>
         <span>{title}</span>
-        <span className={`chevron ${open ? 'open' : ''}`} aria-hidden>
+        <span className={cx('bree-chevron', open && 'bree-open')} aria-hidden>
           ›
         </span>
       </button>
-      {open && <div className="group-body">{children}</div>}
+      {open && <div className="bree-group-body">{children}</div>}
     </section>
   );
 }
 
-export function Field({ label, children, stacked }: { label: string; children: ReactNode; stacked?: boolean }) {
+export interface FieldProps extends StyleProps {
+  label: string;
+  children: ReactNode;
+  /** Label above the control instead of beside it. */
+  stacked?: boolean;
+}
+
+export function Field({ label, children, stacked, className, style }: FieldProps) {
   return (
-    <label className={`field ${stacked ? 'stacked' : ''}`}>
-      <span className="field-label">{label}</span>
-      <span className="field-control">{children}</span>
+    <label className={cx('bree-field', stacked && 'bree-stacked', className)} style={style}>
+      <span className="bree-field-label">{label}</span>
+      <span className="bree-field-control">{children}</span>
     </label>
   );
 }
@@ -46,22 +61,19 @@ function useDraft<T>(value: T) {
   return [draft, setDraft] as const;
 }
 
-/** Text input that commits on blur / Enter, so we don't spam transactions. */
-export function TextInput({
-  value,
-  onChange,
-  placeholder,
-  type = 'text',
-}: {
+export interface TextInputProps extends StyleProps {
   value: string;
   onChange: (value: string) => void;
   placeholder?: string;
   type?: string;
-}) {
+}
+
+export function TextInput({ value, onChange, placeholder, type = 'text', className, style }: TextInputProps) {
   const [draft, setDraft] = useDraft(value);
   return (
     <input
-      className="input"
+      className={cx('bree-input', className)}
+      style={style}
       type={type}
       value={draft}
       placeholder={placeholder}
@@ -74,11 +86,18 @@ export function TextInput({
   );
 }
 
-export function TextArea({ value, onChange, rows = 8 }: { value: string; onChange: (v: string) => void; rows?: number }) {
+export interface TextAreaProps extends StyleProps {
+  value: string;
+  onChange: (value: string) => void;
+  rows?: number;
+}
+
+export function TextArea({ value, onChange, rows = 8, className, style }: TextAreaProps) {
   const [draft, setDraft] = useDraft(value);
   return (
     <textarea
-      className="input textarea"
+      className={cx('bree-input bree-textarea', className)}
+      style={style}
       rows={rows}
       value={draft}
       spellCheck={false}
@@ -94,15 +113,7 @@ function toNumber(value: unknown): number | '' {
   return Number.isFinite(n) ? n : '';
 }
 
-export function NumberInput({
-  value,
-  onChange,
-  unit = 'px',
-  min = 0,
-  max,
-  step = 1,
-  placeholder = 'auto',
-}: {
+export interface NumberInputProps extends StyleProps {
   value: unknown;
   onChange: (value: number | '') => void;
   unit?: string;
@@ -110,7 +121,11 @@ export function NumberInput({
   max?: number;
   step?: number;
   placeholder?: string;
-}) {
+}
+
+/** Number with a unit suffix. Arrow keys step (Shift = ×10). Empty means "auto". */
+export function NumberInput({ value, onChange, unit = 'px', min = 0, max, step = 1, placeholder, className, style }: NumberInputProps) {
+  const t = useMessages();
   const [draft, setDraft] = useDraft<string>(String(toNumber(value)));
   const commit = (raw: string) => {
     if (raw.trim() === '') return onChange('');
@@ -118,12 +133,12 @@ export function NumberInput({
     if (Number.isFinite(n)) onChange(Math.max(min, max !== undefined ? Math.min(max, n) : n));
   };
   return (
-    <span className="number">
+    <span className={cx('bree-number', className)} style={style}>
       <input
-        className="input"
+        className="bree-input"
         inputMode="decimal"
         value={draft}
-        placeholder={placeholder}
+        placeholder={placeholder ?? t.fields.auto}
         onChange={(e) => setDraft(e.target.value)}
         onBlur={() => commit(draft)}
         onKeyDown={(e) => {
@@ -137,29 +152,25 @@ export function NumberInput({
           }
         }}
       />
-      {unit && <span className="unit">{unit}</span>}
+      {unit && <span className="bree-unit">{unit}</span>}
     </span>
   );
 }
 
-export function RangeInput({
-  value,
-  onChange,
-  min,
-  max,
-  unit = 'px',
-}: {
+export interface RangeInputProps extends StyleProps {
   value: unknown;
   onChange: (value: number) => void;
   min: number;
   max: number;
   unit?: string;
-}) {
+}
+
+export function RangeInput({ value, onChange, min, max, unit = 'px', className, style }: RangeInputProps) {
   const n = toNumber(value) || min;
   return (
-    <span className="range">
+    <span className={cx('bree-range', className)} style={style}>
       <input type="range" min={min} max={max} value={n} onChange={(e) => onChange(Number(e.target.value))} />
-      <span className="range-value">
+      <span className="bree-range-value">
         {n}
         {unit}
       </span>
@@ -167,7 +178,7 @@ export function RangeInput({
   );
 }
 
-const SWATCHES = [
+export const DEFAULT_SWATCHES = [
   '#111827', '#374151', '#6b7280', '#d1d5db', '#f3f4f6', '#ffffff',
   '#ef4444', '#f97316', '#f59e0b', '#10b981', '#0ea5e9', '#2563eb',
   '#4f46e5', '#7c3aed', '#db2777', '#eef2ff', '#ecfdf5', '#fef3c7',
@@ -185,30 +196,35 @@ export function toHex(color: string): string | null {
 
 type EyeDropperCtor = new () => { open: () => Promise<{ sRGBHex: string }> };
 
-const PipetteIcon = () => (
-  <svg viewBox="0 0 24 24" width="15" height="15" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden>
-    <path d="m2 22 1-1h3l9-9" />
-    <path d="M3 21v-3l9-9" />
-    <path d="m15 6 3.4-3.4a2.1 2.1 0 1 1 3 3L18 9l.4.4a2.1 2.1 0 1 1-3 3l-3.8-3.8a2.1 2.1 0 1 1 3-3l.4.4Z" />
-  </svg>
-);
+export interface ColorInputProps extends StyleProps {
+  value: unknown;
+  onChange: (value: string) => void;
+  /** Colors already used in the document, offered first. */
+  presets?: string[];
+  /** Palette of the picker. */
+  swatches?: string[];
+  placeholder?: string;
+  /** Class name of the (portaled) picker popover. */
+  popoverClassName?: string;
+}
 
 /**
- * Color field: swatch + hex text, opening a react-colorful picker (MIT) in a
- * Radix popover. The popover is portaled out of the sidebar, so it is wrapped
- * in an EditorFocusScope: interacting with it keeps the block selected.
+ * Color field: swatch + hex text, opening a react-colorful picker in a Radix
+ * popover. The popover is portaled out of the sidebar, so it is wrapped in an
+ * EditorFocusScope: interacting with it keeps the block selected.
  */
 export function ColorInput({
   value,
   onChange,
   presets = [],
-  placeholder = 'Par défaut',
-}: {
-  value: unknown;
-  onChange: (value: string) => void;
-  presets?: string[];
-  placeholder?: string;
-}) {
+  swatches = DEFAULT_SWATCHES,
+  placeholder,
+  className,
+  style,
+  popoverClassName,
+}: ColorInputProps) {
+  const t = useMessages();
+  const emptyLabel = placeholder ?? t.fields.colorDefault;
   const raw = typeof value === 'string' ? value : '';
   const hex = toHex(raw);
   const [open, setOpen] = useState(false);
@@ -252,21 +268,22 @@ export function ColorInput({
         setOpen(next);
       }}
     >
-      <span className="color-field">
+      <span className={cx('bree-color-field', className)} style={style}>
         <Popover.Trigger asChild>
           <button
             type="button"
-            className={`color-trigger ${hex ? '' : 'empty'}`}
+            className={cx('bree-color-trigger', !hex && 'bree-empty')}
             style={hex ? { background: hex } : undefined}
-            aria-label={`Choisir une couleur (${raw || placeholder})`}
+            aria-label={t.fields.chooseColor(raw || emptyLabel)}
           />
         </Popover.Trigger>
-        <TextInput value={raw} onChange={onChange} placeholder={placeholder} />
+        <TextInput value={raw} onChange={onChange} placeholder={emptyLabel} />
       </span>
       <Popover.Portal>
         <EditorFocusScope>
           <Popover.Content
-            className="color-popover"
+            // Portaled outside the editor root: `bree` brings the theme variables along.
+            className={cx('bree bree-color-popover', popoverClassName)}
             side="left"
             align="start"
             sideOffset={10}
@@ -274,17 +291,17 @@ export function ColorInput({
             onOpenAutoFocus={(e) => e.preventDefault()}
           >
             <HexColorPicker color={draft} onChange={live} />
-            <div className="color-popover-row">
-              <span className="color-preview" style={{ background: draft }} />
-              <label className="hex-field">
+            <div className="bree-color-popover-row">
+              <span className="bree-color-preview" style={{ background: draft }} />
+              <label className="bree-hex-field">
                 <span>#</span>
-                <HexColorInput color={draft} onChange={commit} aria-label="Code hexadécimal" />
+                <HexColorInput color={draft} onChange={commit} aria-label={t.fields.hexCode} />
               </label>
               {EyeDropper && (
                 <button
                   type="button"
-                  className="icon-button"
-                  title="Pipette : prendre une couleur à l’écran"
+                  className="bree-icon-button"
+                  title={t.fields.eyedropper}
                   onClick={() =>
                     new EyeDropper()
                       .open()
@@ -298,21 +315,21 @@ export function ColorInput({
             </div>
             {documentColors.length > 0 && (
               <>
-                <span className="color-popover-title">Couleurs du document</span>
-                <div className="swatches">
+                <span className="bree-color-popover-title">{t.fields.documentColors}</span>
+                <div className="bree-swatches">
                   {documentColors.map((swatch) => (
-                    <button key={swatch} type="button" className="swatch" style={{ background: swatch }} title={swatch} onClick={() => commit(swatch)} />
+                    <button key={swatch} type="button" className="bree-swatch" style={{ background: swatch }} title={swatch} onClick={() => commit(swatch)} />
                   ))}
                 </div>
               </>
             )}
-            <span className="color-popover-title">Palette</span>
-            <div className="swatches">
-              {SWATCHES.map((swatch) => (
+            <span className="bree-color-popover-title">{t.fields.palette}</span>
+            <div className="bree-swatches">
+              {swatches.map((swatch) => (
                 <button
                   key={swatch}
                   type="button"
-                  className={`swatch ${swatch === draft ? 'active' : ''}`}
+                  className={cx('bree-swatch', swatch === draft && 'bree-active')}
                   style={{ background: swatch }}
                   title={swatch}
                   onClick={() => commit(swatch)}
@@ -321,14 +338,14 @@ export function ColorInput({
             </div>
             <button
               type="button"
-              className="color-reset"
+              className="bree-color-reset"
               onClick={() => {
                 pending.current = null;
                 onChangeRef.current('');
                 setOpen(false);
               }}
             >
-              Revenir à la valeur par défaut
+              {t.fields.resetColor}
             </button>
           </Popover.Content>
         </EditorFocusScope>
@@ -337,17 +354,16 @@ export function ColorInput({
   );
 }
 
-export function Select({
-  value,
-  onChange,
-  options,
-}: {
+export interface SelectProps extends StyleProps {
   value: string;
   onChange: (value: string) => void;
+  /** [value, label] pairs. */
   options: Array<[string, string]>;
-}) {
+}
+
+export function Select({ value, onChange, options, className, style }: SelectProps) {
   return (
-    <select className="input select" value={value} onChange={(e) => onChange(e.target.value)}>
+    <select className={cx('bree-input bree-select', className)} style={style} value={value} onChange={(e) => onChange(e.target.value)}>
       {options.map(([v, label]) => (
         <option key={v} value={v}>
           {label}
@@ -357,17 +373,16 @@ export function Select({
   );
 }
 
-export function Segmented<T extends string>({
-  value,
-  onChange,
-  options,
-}: {
+export interface SegmentedProps<T extends string> extends StyleProps {
   value: T;
   onChange: (value: T) => void;
   options: Array<{ value: T; label: ReactNode; title?: string }>;
-}) {
+  ariaLabel?: string;
+}
+
+export function Segmented<T extends string>({ value, onChange, options, ariaLabel, className, style }: SegmentedProps<T>) {
   return (
-    <span className="segmented" role="radiogroup">
+    <span className={cx('bree-segmented', className)} style={style} role="radiogroup" aria-label={ariaLabel}>
       {options.map((option) => (
         <button
           key={option.value}
@@ -375,7 +390,7 @@ export function Segmented<T extends string>({
           role="radio"
           aria-checked={value === option.value}
           title={option.title}
-          className={value === option.value ? 'active' : ''}
+          className={cx(value === option.value && 'bree-active')}
           onClick={() => onChange(option.value)}
         >
           {option.label}
@@ -385,39 +400,49 @@ export function Segmented<T extends string>({
   );
 }
 
-export function AlignInput({ value, onChange }: { value: string; onChange: (value: string) => void }) {
+export interface AlignInputProps extends StyleProps {
+  value: string;
+  onChange: (value: string) => void;
+}
+
+export function AlignInput({ value, onChange, className, style }: AlignInputProps) {
+  const t = useMessages();
   return (
     <Segmented
+      className={className}
+      style={style}
       value={value || 'left'}
       onChange={onChange}
       options={[
-        { value: 'left', label: <AlignLeftIcon size={14} />, title: 'Gauche' },
-        { value: 'center', label: <AlignCenterIcon size={14} />, title: 'Centre' },
-        { value: 'right', label: <AlignRightIcon size={14} />, title: 'Droite' },
+        { value: 'left', label: <AlignLeftIcon size={14} />, title: t.fields.alignLeft },
+        { value: 'center', label: <AlignCenterIcon size={14} />, title: t.fields.alignCenter },
+        { value: 'right', label: <AlignRightIcon size={14} />, title: t.fields.alignRight },
       ]}
     />
   );
 }
 
-/** Unlayer-style padding control: one value, or four with "Plus d'options". */
-export function PaddingInput({
-  get,
-  set,
-}: {
-  get: (side: 'Top' | 'Right' | 'Bottom' | 'Left') => unknown;
-  set: (changes: Array<[side: 'Top' | 'Right' | 'Bottom' | 'Left', value: number | '']>) => void;
-}) {
+export type Side = 'Top' | 'Right' | 'Bottom' | 'Left';
+
+export interface PaddingInputProps extends StyleProps {
+  get: (side: Side) => unknown;
+  set: (changes: Array<[side: Side, value: number | '']>) => void;
+}
+
+/** One value for the four sides, or four values with "More options". */
+export function PaddingInput({ get, set, className, style }: PaddingInputProps) {
+  const t = useMessages();
   const sides = ['Top', 'Right', 'Bottom', 'Left'] as const;
   const values = sides.map((side) => toNumber(get(side)));
   const uniform = values.every((v) => v === values[0]);
   const [expanded, setExpanded] = useState(!uniform);
-  const labels = { Top: 'Haut', Right: 'Droite', Bottom: 'Bas', Left: 'Gauche' };
+  const labels = { Top: t.fields.top, Right: t.fields.right, Bottom: t.fields.bottom, Left: t.fields.left };
   return (
-    <div className="padding">
+    <div className={cx('bree-padding', className)} style={style}>
       {expanded ? (
-        <div className="padding-grid">
+        <div className="bree-padding-grid">
           {sides.map((side, i) => (
-            <label key={side} className="padding-side">
+            <label key={side} className="bree-padding-side">
               <span>{labels[side]}</span>
               <NumberInput value={values[i]} onChange={(v) => set([[side, v]])} />
             </label>
@@ -426,9 +451,9 @@ export function PaddingInput({
       ) : (
         <NumberInput value={values[0]} onChange={(v) => set(sides.map((side) => [side, v]))} />
       )}
-      <label className="checkbox">
+      <label className="bree-checkbox">
         <input type="checkbox" checked={expanded} onChange={(e) => setExpanded(e.target.checked)} />
-        Plus d’options
+        {t.fields.moreOptions}
       </label>
     </div>
   );

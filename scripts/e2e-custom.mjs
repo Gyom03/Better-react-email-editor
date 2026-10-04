@@ -1,0 +1,16 @@
+import { chromium } from 'playwright-core';
+const browser = await chromium.launch({ channel: 'msedge', headless: true });
+const page = await browser.newPage({ viewport: { width: 1440, height: 900 } });
+page.on('pageerror', (e) => console.log('[pageerror]', e.message));
+await page.goto(process.env.BASE_URL ?? 'http://localhost:5179/?example=custom', { waitUntil: 'networkidle' });
+await page.waitForTimeout(500);
+await page.locator('.bree-tile', { hasText: 'Promo banner' }).click();
+await page.waitForTimeout(200);
+await page.locator('.bree-sidebar .bree-icon-button').first().click().catch(() => {});
+await page.locator('button', { hasText: '+ Signature' }).click();
+await page.waitForTimeout(200);
+console.log('texts:', await page.locator('.tiptap h2, .tiptap p').allTextContents());
+await page.locator('button', { hasText: 'Export HTML' }).click();
+await page.waitForTimeout(1500);
+console.log('dialog:', await page.locator('.bree-modal').count(), '| html has promo:', (await page.locator('.bree-modal pre.bree-code').textContent()).includes('20% off'));
+await browser.close();

@@ -1,7 +1,7 @@
 import { mergeAttributes } from '@tiptap/core';
 import { EmailNode } from '@react-email/editor/core';
 import { Column, Img, Link, Row, Section } from 'react-email';
-import { inlineStyleToObject } from './style-utils';
+import { inlineStyleToObject } from '../core/style-utils';
 
 /**
  * Custom email blocks built on the public `EmailNode` API: each node defines
@@ -234,7 +234,7 @@ export const HtmlBlock = EmailNode.create({
     return {
       html: {
         default:
-          '<p style="margin:0;text-align:center;font-family:sans-serif">Votre <strong>HTML</strong> personnalisé</p>',
+          '<p style="margin:0;text-align:center;font-family:sans-serif">Your custom <strong>HTML</strong></p>',
         parseHTML: (el: HTMLElement) => el.dataset.html ?? el.innerHTML,
         renderHTML: () => ({}),
       },

@@ -1,110 +1,31 @@
-import type { Node as PMNode } from '@tiptap/pm/model';
-import { useCurrentEditor, useEditorState } from '@tiptap/react';
-import {
-  CodeIcon,
-  Columns2Icon,
-  Columns3Icon,
-  Columns4Icon,
-  EditorFocusScope,
-  Heading1Icon,
-  ImageIcon,
-  LayoutIcon,
-  LinkIcon,
-  ListIcon,
-  ListOrderedIcon,
-  MinusIcon,
-  MousePointerClickIcon,
-  PanelLeftIcon,
-  SquareCodeIcon,
-  TableIcon,
-  TextQuoteIcon,
-  TypeIcon,
-  XIcon,
-} from '@react-email/editor/ui';
-import { useEffect, useMemo, useRef, useState, useSyncExternalStore, type ComponentType, type DragEvent } from 'react';
-import { applyDrop, DND_MIME, dragSession, hoverStore, payloadFragment, selectedUnit, selectUnit } from './dnd';
-import { buildLayers, type LayerItem, layerDropTarget, type LayerZone, zoneFor } from './layers';
-import { nodeLabel } from './node-labels';
-
-type Icon = ComponentType<{ size?: number }>;
-
-const SpacerIcon: Icon = ({ size = 14 }) => (
-  <svg viewBox="0 0 24 24" width={size} height={size} fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" aria-hidden>
-    <path d="M4 4h16M4 20h16M12 8v8" />
-  </svg>
-);
-
-const ICONS: Record<string, Icon> = {
-  paragraph: TypeIcon,
-  heading: Heading1Icon,
-  image: ImageIcon,
-  button: MousePointerClickIcon,
-  horizontalRule: MinusIcon,
-  spacer: SpacerIcon,
-  socialLinks: LinkIcon,
-  htmlBlock: SquareCodeIcon,
-  section: LayoutIcon,
-  twoColumns: Columns2Icon,
-  threeColumns: Columns3Icon,
-  fourColumns: Columns4Icon,
-  columnsColumn: PanelLeftIcon,
-  bulletList: ListIcon,
-  orderedList: ListOrderedIcon,
-  blockquote: TextQuoteIcon,
-  codeBlock: CodeIcon,
-  table: TableIcon,
-};
-
-function itemLabel(item: LayerItem) {
-  return item.node.type.name === 'columnsColumn' ? `Colonne ${item.index}` : nodeLabel(item.node.type.name);
-}
-
-function truncate(text: string, max = 36) {
-  const clean = text.replace(/\s+/g, ' ').trim();
-  return clean.length > max ? `${clean.slice(0, max)}…` : clean;
-}
-
-/** A short hint of the block's content, like layer names in Photoshop. */
-function itemPreview(node: PMNode): string {
-  const { attrs } = node;
-  switch (node.type.name) {
-    case 'image': {
-      if (attrs.alt) return truncate(attrs.alt);
-      const src = String(attrs.src ?? '');
-      if (src.startsWith('data:')) return 'image importée';
-      try {
-        const url = new URL(src);
-        // Placeholder services carry the label in ?text=
-        return truncate(url.searchParams.get('text') ?? decodeURIComponent(url.pathname.split('/').pop() ?? ''));
-      } catch {
-        return '';
-      }
-    }
-    case 'spacer':
-      return `${attrs.height}px`;
-    case 'socialLinks':
-      return Array.isArray(attrs.links) ? attrs.links.map((l: { network: string }) => l.network).join(', ') : '';
-    case 'htmlBlock':
-      return truncate(String(attrs.html ?? '').replace(/<[^>]+>/g, ' '));
-    case 'horizontalRule':
-    case 'section':
-    case 'columnsColumn':
-    case 'twoColumns':
-    case 'threeColumns':
-    case 'fourColumns':
-      return '';
-    default:
-      return truncate(node.textContent) || 'vide';
-  }
-}
+import { useEditorState } from '@tiptap/react';
+import { EditorFocusScope, LayoutIcon, XIcon } from '@react-email/editor/ui';
+import { useEffect, useMemo, useRef, useState, useSyncExternalStore, type DragEvent } from 'react';
+import { useEmailEditor } from '../context';
+import { cx, type StyleProps } from '../core/cx';
+import { applyDrop, DND_MIME, payloadFragment, selectedUnit, selectUnit } from '../core/dnd';
+import { buildLayers, type LayerItem, layerDropTarget, type LayerZone, zoneFor } from '../core/layers';
+import { textPreview } from '../registry/default-nodes';
 
 interface DropState {
   key: string;
   zone: LayerZone;
 }
 
-export function LayersPanel({ onClose }: { onClose: () => void }) {
-  const { editor } = useCurrentEditor();
+export interface LayersPanelProps extends StyleProps {
+  /** Called by the close button. Defaults to hiding the panel (`setLayersOpen(false)`); pass `null` to hide the button. */
+  onClose?: (() => void) | null;
+  /** Panel title. Defaults to the localized "Layers". */
+  title?: string;
+}
+
+/** Tree of the email (Photoshop-like layers): select, hover, reorder and nest blocks by drag & drop. */
+export function LayersPanel({ onClose, title, className, style }: LayersPanelProps) {
+  const { editor, t, locale, nodes, nodeLabel, dragSession, hoverStore, setLayersOpen } = useEmailEditor();
+  const close = onClose === undefined ? () => setLayersOpen(false) : onClose;
+  const itemLabel = (item: LayerItem) =>
+    item.node.type.name === 'columnsColumn' ? t.layers.column(item.index) : nodeLabel(item.node.type.name);
+  const itemPreview = (item: LayerItem) => (nodes.get(item.node.type.name)?.preview ?? textPreview)(item.node, { locale, t });
   const doc = useEditorState({
     editor,
     selector: ({ editor: ed }) => ed?.state.doc ?? null,
@@ -126,8 +47,6 @@ export function LayersPanel({ onClose }: { onClose: () => void }) {
     if (selectedPos === null) return;
     listRef.current?.querySelector('[aria-selected="true"]')?.scrollIntoView({ block: 'nearest' });
   }, [selectedPos]);
-
-  if (!editor) return null;
 
   const toggle = (key: string) =>
     setCollapsed((prev) => {
@@ -163,10 +82,10 @@ export function LayersPanel({ onClose }: { onClose: () => void }) {
 
   const renderItems = (items: LayerItem[]) =>
     items.map((item) => {
-      const Icon = ICONS[item.node.type.name] ?? LayoutIcon;
+      const Icon = nodes.get(item.node.type.name)?.icon ?? LayoutIcon;
       const hasChildren = item.children.length > 0;
       const isCollapsed = collapsed.has(item.key);
-      const preview = itemPreview(item.node);
+      const preview = itemPreview(item);
       const dropZone = drop?.key === item.key ? drop.zone : null;
       return (
         <div key={item.key} role="none">
@@ -176,18 +95,16 @@ export function LayersPanel({ onClose }: { onClose: () => void }) {
             aria-level={item.depth + 1}
             aria-selected={selectedPos === item.pos}
             aria-expanded={hasChildren ? !isCollapsed : undefined}
-            className={[
-              'layer',
-              selectedPos === item.pos && 'selected',
-              hoverPos === item.pos && 'hovered',
-              dropZone && `drop-${dropZone}`,
-              item.fixed && 'fixed',
-            ]
-              .filter(Boolean)
-              .join(' ')}
+            className={cx(
+              'bree-layer',
+              selectedPos === item.pos && 'bree-selected',
+              hoverPos === item.pos && 'bree-hovered',
+              dropZone && `bree-drop-${dropZone}`,
+              item.fixed && 'bree-fixed',
+            )}
             style={{ paddingLeft: 6 + item.depth * 16 }}
             draggable={!item.fixed}
-            title={item.fixed ? 'Les colonnes restent dans leur ligne' : 'Cliquer pour sélectionner, glisser pour déplacer'}
+            title={item.fixed ? t.layers.fixedHint : t.layers.itemHint}
             onClick={() => select(item)}
             onKeyDown={(e) => {
               if (e.key === 'Enter' || e.key === ' ') {
@@ -231,8 +148,8 @@ export function LayersPanel({ onClose }: { onClose: () => void }) {
             {hasChildren ? (
               <button
                 type="button"
-                className={`layer-caret ${isCollapsed ? '' : 'open'}`}
-                aria-label={isCollapsed ? 'Déplier' : 'Replier'}
+                className={cx('bree-layer-caret', !isCollapsed && 'bree-open')}
+                aria-label={isCollapsed ? t.layers.expand : t.layers.collapse}
                 tabIndex={-1}
                 onClick={(e) => {
                   e.stopPropagation();
@@ -242,17 +159,17 @@ export function LayersPanel({ onClose }: { onClose: () => void }) {
                 ›
               </button>
             ) : (
-              <span className="layer-caret-spacer" />
+              <span className="bree-layer-caret-spacer" />
             )}
-            <span className="layer-icon">
+            <span className="bree-layer-icon">
               <Icon size={14} />
             </span>
-            <span className="layer-label">{itemLabel(item)}</span>
-            {preview && <span className="layer-preview">{preview}</span>}
+            <span className="bree-layer-label">{itemLabel(item)}</span>
+            {preview && <span className="bree-layer-preview">{preview}</span>}
           </div>
           {item.empty && (
-            <div className="layer-empty" style={{ paddingLeft: 6 + (item.depth + 1) * 16 + 18 }}>
-              Vide — déposez du contenu ici
+            <div className="bree-layer-empty" style={{ paddingLeft: 6 + (item.depth + 1) * 16 + 18 }}>
+              {t.layers.emptyZone}
             </div>
           )}
           {hasChildren && !isCollapsed && <div role="group">{renderItems(item.children)}</div>}
@@ -262,17 +179,23 @@ export function LayersPanel({ onClose }: { onClose: () => void }) {
 
   return (
     <EditorFocusScope>
-      <aside className="layers" aria-label="Calques" tabIndex={-1} onDragLeave={(e) => !e.currentTarget.contains(e.relatedTarget as Node) && setDrop(null)}>
-        <header className="layers-header">
-          <h2>Calques</h2>
-          <div className="layers-actions">
-            <button type="button" className="icon-button small" title="Tout déplier" onClick={() => setCollapsed(new Set())}>
+      <aside
+        className={cx('bree-layers', className)}
+        style={style}
+        aria-label={title ?? t.layers.title}
+        tabIndex={-1}
+        onDragLeave={(e) => !e.currentTarget.contains(e.relatedTarget as Node) && setDrop(null)}
+      >
+        <header className="bree-layers-header">
+          <h2>{title ?? t.layers.title}</h2>
+          <div className="bree-layers-actions">
+            <button type="button" className="bree-icon-button bree-small" title={t.layers.expandAll} onClick={() => setCollapsed(new Set())}>
               ⊞
             </button>
             <button
               type="button"
-              className="icon-button small"
-              title="Tout replier"
+              className="bree-icon-button bree-small"
+              title={t.layers.collapseAll}
               onClick={() => {
                 const keys = new Set<string>();
                 const walk = (items: LayerItem[]) =>
@@ -286,13 +209,15 @@ export function LayersPanel({ onClose }: { onClose: () => void }) {
             >
               ⊟
             </button>
-            <button type="button" className="icon-button small" title="Fermer les calques" onClick={onClose}>
-              <XIcon size={14} />
-            </button>
+            {close && (
+              <button type="button" className="bree-icon-button bree-small" title={t.layers.close} onClick={close}>
+                <XIcon size={14} />
+              </button>
+            )}
           </div>
         </header>
-        <div className="layers-list" role="tree" aria-label="Structure de l’email" ref={listRef}>
-          {layers.length ? renderItems(layers) : <p className="hint">L’email est vide.</p>}
+        <div className="bree-layers-list" role="tree" aria-label={t.layers.tree} ref={listRef}>
+          {layers.length ? renderItems(layers) : <p className="bree-hint">{t.layers.emptyEmail}</p>}
         </div>
       </aside>
     </EditorFocusScope>

@@ -6,10 +6,10 @@ mkdirSync(OUT, { recursive: true });
 const browser = await chromium.launch({ channel: 'msedge', headless: true });
 const page = await browser.newPage({ viewport: { width: 1440, height: 900 } });
 page.on('pageerror', (e) => console.log('[pageerror]', e.message));
-await page.goto(process.env.BASE_URL ?? 'http://localhost:5179', { waitUntil: 'networkidle' });
+await page.goto(process.env.BASE_URL ?? 'http://localhost:5179/?lang=fr', { waitUntil: 'networkidle' });
 await page.waitForTimeout(600);
-const panel = () => page.locator('.properties-header h2').textContent().catch(() => 'palette');
-const hoverTag = () => page.locator('.ov-hover .ov-tag').textContent().catch(() => 'none');
+const panel = () => page.locator('.bree-properties-header h2').textContent().catch(() => 'palette');
+const hoverTag = () => page.locator('.bree-ov-hover .bree-ov-tag').textContent().catch(() => 'none');
 
 // Gap between the two product columns (cellspacing 16px)
 const cols = page.locator('.tiptap [data-type="two-columns"]').nth(1).locator(':scope > .node-column');

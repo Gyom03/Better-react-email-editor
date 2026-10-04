@@ -6,12 +6,12 @@ mkdirSync(OUT, { recursive: true });
 const browser = await chromium.launch({ channel: 'msedge', headless: true });
 const page = await browser.newPage({ viewport: { width: 1440, height: 900 } });
 page.on('pageerror', (e) => console.log('[pageerror]', e.message));
-await page.goto(process.env.BASE_URL ?? 'http://localhost:5179', { waitUntil: 'networkidle' });
+await page.goto(process.env.BASE_URL ?? 'http://localhost:5179/?lang=fr', { waitUntil: 'networkidle' });
 await page.waitForTimeout(600);
 const shot = (n) => page.screenshot({ path: `${OUT}/${n}.png` });
 const center = async (l) => { const b = await l.boundingBox(); return { x: b.x + b.width / 2, y: b.y + b.height / 2, b }; };
-const rows = () => page.locator('.layer').evaluateAll((els) => els.map((e) => `${'  '.repeat(Number(e.getAttribute('aria-level')) - 1)}${e.querySelector('.layer-label').textContent}${e.querySelector('.layer-preview') ? ' · ' + e.querySelector('.layer-preview').textContent : ''}`));
-const layer = (label, preview) => page.locator('.layer', { has: page.locator('.layer-label', { hasText: label }), ...(preview ? { hasText: preview } : {}) }).first();
+const rows = () => page.locator('.bree-layer').evaluateAll((els) => els.map((e) => `${'  '.repeat(Number(e.getAttribute('aria-level')) - 1)}${e.querySelector('.bree-layer-label').textContent}${e.querySelector('.bree-layer-preview') ? ' · ' + e.querySelector('.bree-layer-preview').textContent : ''}`));
+const layer = (label, preview) => page.locator('.bree-layer', { has: page.locator('.bree-layer-label', { hasText: label }), ...(preview ? { hasText: preview } : {}) }).first();
 async function drag(from, to) {
   await page.mouse.move(from.x, from.y);
   await page.mouse.down();
@@ -28,7 +28,7 @@ await shot('70-layers');
 // Click a layer -> selects the block in the canvas + properties
 await layer('Titre', 'Nos coups').click();
 await page.waitForTimeout(250);
-console.log('panel after layer click:', await page.locator('.properties-header h2').textContent(), '| canvas frame:', await page.locator('.ov-selected .ov-tag').textContent());
+console.log('panel after layer click:', await page.locator('.bree-properties-header h2').textContent(), '| canvas frame:', await page.locator('.bree-ov-selected .bree-ov-tag').textContent());
 
 // Reorder: drag "Titre · Nos coups" before the hero section (top 20% of the row)
 const src = await center(layer('Titre', 'Nos coups'));
@@ -49,10 +49,10 @@ await page.waitForTimeout(300);
 console.log('after nesting (top 12):', (await rows()).slice(0, 12));
 
 // Palette tile -> into "Colonne 2" of the products row
-await page.locator('.sidebar .icon-button[title^="Fermer"]').click().catch(() => {});
+await page.locator('.bree-sidebar .bree-icon-button[title^="Fermer"]').click().catch(() => {});
 await page.waitForTimeout(150);
-const tile = await center(page.locator('.tile', { hasText: 'Bouton' }));
-const col2 = await center(page.locator('.layer', { has: page.locator('.layer-label', { hasText: 'Colonne 2' }) }).nth(1));
+const tile = await center(page.locator('.bree-tile', { hasText: 'Bouton' }));
+const col2 = await center(page.locator('.bree-layer', { has: page.locator('.bree-layer-label', { hasText: 'Colonne 2' }) }).nth(1));
 await drag(tile, { x: col2.x, y: col2.y });
 await shot('72-layers-palette-drop');
 await page.mouse.up();
@@ -61,6 +61,6 @@ console.log('stray empty texts:', (await rows()).filter((r) => r.endsWith('· vi
 console.log('buttons in products col 2:', await page.locator('.tiptap [data-type="two-columns"]').nth(1).locator('.node-column').nth(1).locator('a.node-button').count());
 
 // Columns cannot be dragged
-console.log('column draggable:', await page.locator('.layer.fixed').first().getAttribute('draggable'));
+console.log('column draggable:', await page.locator('.bree-layer.bree-fixed').first().getAttribute('draggable'));
 await shot('73-layers-final');
 await browser.close();

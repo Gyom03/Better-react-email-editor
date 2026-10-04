@@ -1,0 +1,48 @@
+html,
+body,
+#root {
+  height: 100%;
+  margin: 0;
+}
+
+.locale-select {
+  height: 34px;
+  padding: 0 8px;
+  border: 1px solid var(--bree-border-strong);
+  border-radius: var(--bree-radius);
+  background: var(--bree-bg);
+  font: inherit;
+  font-size: 13px;
+}
+
+/* ?example=custom */
+.custom-layout {
+  display: flex;
+  height: 100%;
+}
+
+.custom-main {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  min-width: 0;
+}
+
+.custom-canvas {
+  flex: 1;
+}
+
+.custom-toolbar {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 12px;
+  padding: 10px;
+  border-top: 1px solid var(--bree-border);
+}
+
+.custom-root {
+  --bree-accent: #7c3aed;
+  --bree-accent-hover: #6d28d9;
+  --bree-accent-soft: #f5f3ff;
+}

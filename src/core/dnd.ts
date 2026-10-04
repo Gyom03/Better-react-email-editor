@@ -14,19 +14,6 @@ export type DragPayload =
   | { kind: 'new'; label: string; content: () => JSONContent[] }
   | { kind: 'move'; pos: number; label: string };
 
-// Only one drag can happen at a time; `dragover` can't read dataTransfer
-// payloads, so the active payload lives here.
-let activeDrag: DragPayload | null = null;
-export const dragSession = {
-  get: () => activeDrag,
-  start: (payload: DragPayload) => {
-    activeDrag = payload;
-  },
-  end: () => {
-    activeDrag = null;
-  },
-};
-
 export interface DropTarget {
   /** Document position where the content will be inserted. */
   pos: number;
@@ -367,24 +354,3 @@ export function appendBlocks(editor: Editor, content: JSONContent[]) {
       : { pos: end, line: { top: 0, left: 0, width: 0 } };
   applyDrop(editor, { kind: 'new', label: '', content: () => content }, target);
 }
-
-// ---------------------------------------------------------------------------
-// Shared hover: the canvas and the layers panel highlight the same block.
-// ---------------------------------------------------------------------------
-
-let hoverPos: number | null = null;
-const hoverListeners = new Set<() => void>();
-export const hoverStore = {
-  get: () => hoverPos,
-  set: (pos: number | null) => {
-    if (pos === hoverPos) return;
-    hoverPos = pos;
-    for (const listener of hoverListeners) listener();
-  },
-  subscribe: (listener: () => void) => {
-    hoverListeners.add(listener);
-    return () => {
-      hoverListeners.delete(listener);
-    };
-  },
-};
