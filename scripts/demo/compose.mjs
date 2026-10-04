@@ -29,11 +29,10 @@ const { viewport, frames, timeline } = JSON.parse(readFileSync(`${OUT}/timeline.
 // Scene geometry (output pixels): a window whose content maps 1:1 to the viewport.
 // ---------------------------------------------------------------------------
 
-const TITLE = 40;
 const content = { w: viewport.width, h: viewport.height };
-const win = { x: (W - content.w) / 2, y: (H - content.h - TITLE) / 2, w: content.w, h: content.h + TITLE };
+const win = { x: (W - content.w) / 2, y: (H - content.h) / 2, w: content.w, h: content.h };
 const contentX = win.x;
-const contentY = win.y + TITLE;
+const contentY = win.y;
 const toScene = (x, y) => ({ x: contentX + x, y: contentY + y });
 
 // ---------------------------------------------------------------------------
@@ -140,7 +139,7 @@ function stateAt(n, dt) {
 const html = `<!doctype html><html><head><meta charset="utf-8"></head><body style="margin:0;background:#000">
 <canvas id="c" width="${W}" height="${H}"></canvas>
 <script>
-const W = ${W}, H = ${H}, TITLE = ${TITLE};
+const W = ${W}, H = ${H};
 const BACKDROP = ${JSON.stringify(BACKDROP)};
 const SHADOW = ${JSON.stringify(SHADOW)};
 const win = ${JSON.stringify(win)};
@@ -163,7 +162,7 @@ const backdrop = new OffscreenCanvas(W, H);
   r.addColorStop(1, 'rgba(255,255,255,0)');
   b.fillStyle = r;
   b.fillRect(0, 0, W, H);
-  // Window shadow + title bar.
+  // Window: soft shadow and a hairline border, no browser chrome.
   b.save();
   b.shadowColor = SHADOW;
   b.shadowBlur = 60;
@@ -171,25 +170,9 @@ const backdrop = new OffscreenCanvas(W, H);
   b.fillStyle = '#ffffff';
   b.beginPath(); b.roundRect(win.x, win.y, win.w, win.h, 14); b.fill();
   b.restore();
-  b.save();
-  b.beginPath(); b.roundRect(win.x, win.y, win.w, win.h, 14); b.clip();
-  b.fillStyle = '#f3f4f6';
-  b.fillRect(win.x, win.y, win.w, TITLE);
-  b.fillStyle = '#e5e7eb';
-  b.fillRect(win.x, win.y + TITLE - 1, win.w, 1);
-  b.restore();
   b.strokeStyle = 'rgba(15, 23, 42, 0.10)';
   b.lineWidth = 1;
   b.beginPath(); b.roundRect(win.x - 0.5, win.y - 0.5, win.w + 1, win.h + 1, 14.5); b.stroke();
-  ['#ff5f57', '#febc2e', '#28c840'].forEach((c, i) => {
-    b.fillStyle = c; b.beginPath(); b.arc(win.x + 22 + i * 20, win.y + TITLE / 2, 6, 0, Math.PI * 2); b.fill();
-  });
-  b.fillStyle = '#ffffff';
-  b.beginPath(); b.roundRect(win.x + win.w / 2 - 170, win.y + 8, 340, TITLE - 16, 6); b.fill();
-  b.fillStyle = '#6b7280';
-  b.font = '500 13px ' + FONT;
-  b.textAlign = 'center'; b.textBaseline = 'middle';
-  b.fillText('localhost — better-react-email-editor', win.x + win.w / 2, win.y + TITLE / 2 + 1);
 }
 
 let currentFile = null, currentImage = null;
@@ -237,8 +220,8 @@ window.draw = async (s) => {
   ctx.setTransform(z, 0, 0, z, W / 2 - x * z, H / 2 - y * z);
   ctx.drawImage(backdrop, 0, 0);
   ctx.save();
-  ctx.beginPath(); ctx.roundRect(win.x, win.y + TITLE, win.w, win.h - TITLE, [0, 0, 14, 14]); ctx.clip();
-  ctx.drawImage(image, win.x, win.y + TITLE, win.w, win.h - TITLE);
+  ctx.beginPath(); ctx.roundRect(win.x, win.y, win.w, win.h, 14); ctx.clip();
+  ctx.drawImage(image, win.x, win.y, win.w, win.h);
   ctx.restore();
   for (const r of s.ripples) {
     ctx.beginPath();
