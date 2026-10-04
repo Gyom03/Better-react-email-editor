@@ -12,6 +12,16 @@
     "tiptap",
     "unlayer"
   ],
+  "license": "MIT",
+  "author": "Gyom03",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/Gyom03/Better-react-email-editor.git"
+  },
+  "homepage": "https://github.com/Gyom03/Better-react-email-editor#readme",
+  "bugs": {
+    "url": "https://github.com/Gyom03/Better-react-email-editor/issues"
+  },
   "type": "module",
   "main": "./dist/index.cjs",
   "module": "./dist/index.js",

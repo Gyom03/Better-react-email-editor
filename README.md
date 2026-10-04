@@ -375,3 +375,7 @@ These are workarounds for `@react-email/editor`:
 - `EmailEditor` always places its editing area before its children. `EditorRoot` creates the editor itself, so `Canvas` can sit anywhere in your layout; it reproduces the package's paste sanitizer, which is not exported.
 
 Further ideas: host PNG social icons (Gmail does not display SVG), add media queries to stack columns on mobile in the exported HTML, and add more blocks (video thumbnail, countdown).
+
+## License
+
+[MIT](./LICENSE)
