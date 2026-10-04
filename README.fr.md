@@ -220,4 +220,16 @@ npx vite --port 5179 &
 node scripts/e2e.mjs        # idem e2e2 … e2e10, e2e-custom, check-padding — captures dans ./screenshots
 ```
 
+### Vidéo de démo
+
+`scripts/demo/` enregistre une démo façon Screen Studio : fond dégradé, cadre de fenêtre, zooms fluides, curseur lissé, effet au clic et légendes. Il faut [ffmpeg](https://ffmpeg.org) dans le `PATH`.
+
+```bash
+npx vite --port 5179 &
+npm run demo:record       # pilote le playground, capture les images et la timeline → demo-output/
+npm run demo:compose      # produit demo-output/demo.mp4 (1080p, 60 i/s)
+```
+
+Le scénario se modifie à la fin de `record.mjs`. `camera(zoom, x, y)` zoome la vidéo sur un point, `caption(texte)` affiche une légende.
+
 L'intégration du drag & drop dans ProseMirror et les contournements des limites de `@react-email/editor` sont décrits dans le [README anglais](./README.md#headless-core).

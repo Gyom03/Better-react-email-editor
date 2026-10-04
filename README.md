@@ -341,6 +341,18 @@ npx vite --port 5179 &
 node scripts/e2e.mjs        # also e2e2 … e2e10, e2e-custom, check-padding; screenshots in ./screenshots
 ```
 
+### Demo video
+
+`scripts/demo/` records a Screen Studio-style demo: gradient backdrop, window frame, smooth zooms, smoothed cursor, click ripples and captions. It needs [ffmpeg](https://ffmpeg.org) on the `PATH`.
+
+```bash
+npx vite --port 5179 &
+npm run demo:record       # drives the playground, captures frames + timeline → demo-output/
+npm run demo:compose      # renders demo-output/demo.mp4 (1080p, 60 fps)
+```
+
+Edit the storyboard at the end of `record.mjs`. `camera(zoom, x, y)` zooms the video on a point and `caption(text)` shows a caption.
+
 ## Known limitations
 
 These are workarounds for `@react-email/editor`:

@@ -1,5 +1,6 @@
-import { XIcon } from '@react-email/editor/ui';
+import { EditorFocusScope, XIcon } from '@react-email/editor/ui';
 import { useEffect, useState } from 'react';
+import { createPortal } from 'react-dom';
 import { useEmailEditor, type EmailExport } from '../context';
 import { cx, type StyleProps } from '../core/cx';
 
@@ -65,45 +66,50 @@ export function PreviewDialog({
   };
 
   const p = t.preview;
-  return (
-    <div className="bree-modal-backdrop" onMouseDown={(e) => e.target === e.currentTarget && onClose()}>
-      <div className={cx('bree-modal', className)} style={style} role="dialog" aria-modal="true" aria-label={p.dialogLabel}>
-        <header className="bree-modal-header">
-          <nav className="bree-tabs bree-compact" role="tablist">
-            {views.map((id) => (
-              <button key={id} type="button" role="tab" aria-selected={view === id} className={cx(view === id && 'bree-active')} onClick={() => setView(id)}>
-                {p[id]}
+  // Portaled to <body> so it sits above every stacking context of the host page
+  // (and of the canvas overlay); `bree` brings the theme variables along.
+  return createPortal(
+    <EditorFocusScope>
+      <div className="bree bree-modal-backdrop" onMouseDown={(e) => e.target === e.currentTarget && onClose()}>
+        <div className={cx('bree-modal', className)} style={style} role="dialog" aria-modal="true" aria-label={p.dialogLabel}>
+          <header className="bree-modal-header">
+            <nav className="bree-tabs bree-compact" role="tablist">
+              {views.map((id) => (
+                <button key={id} type="button" role="tab" aria-selected={view === id} className={cx(view === id && 'bree-active')} onClick={() => setView(id)}>
+                  {p[id]}
+                </button>
+              ))}
+            </nav>
+            <div className="bree-modal-actions">
+              {result && (view === 'html' || view === 'text') && (
+                <button type="button" className="bree-btn" onClick={copy}>
+                  {copied ? p.copied : p.copy}
+                </button>
+              )}
+              {result && (
+                <button type="button" className="bree-btn bree-primary" onClick={() => download(filename, result.unformattedHtml, 'text/html')}>
+                  {p.download}
+                </button>
+              )}
+              <button type="button" className="bree-icon-button" onClick={onClose} title={p.close}>
+                <XIcon size={18} />
               </button>
-            ))}
-          </nav>
-          <div className="bree-modal-actions">
-            {result && (view === 'html' || view === 'text') && (
-              <button type="button" className="bree-btn" onClick={copy}>
-                {copied ? p.copied : p.copy}
-              </button>
-            )}
-            {result && (
-              <button type="button" className="bree-btn bree-primary" onClick={() => download(filename, result.unformattedHtml, 'text/html')}>
-                {p.download}
-              </button>
-            )}
-            <button type="button" className="bree-icon-button" onClick={onClose} title={p.close}>
-              <XIcon size={18} />
-            </button>
-          </div>
-        </header>
-        <div className="bree-modal-body">
-          {error && <p className="bree-error">{p.renderError(error)}</p>}
-          {!result && !error && <p className="bree-loading">{p.rendering}</p>}
-          {result && (view === 'desktop' || view === 'mobile') && (
-            <div className={cx('bree-preview-frame', `bree-preview-${view}`)}>
-              <iframe title={p.iframeTitle} srcDoc={result.html} sandbox="allow-same-origin allow-popups" />
             </div>
-          )}
-          {result && view === 'html' && <pre className="bree-code">{result.html}</pre>}
-          {result && view === 'text' && <pre className="bree-code">{result.text}</pre>}
+          </header>
+          <div className="bree-modal-body">
+            {error && <p className="bree-error">{p.renderError(error)}</p>}
+            {!result && !error && <p className="bree-loading">{p.rendering}</p>}
+            {result && (view === 'desktop' || view === 'mobile') && (
+              <div className={cx('bree-preview-frame', `bree-preview-${view}`)}>
+                <iframe title={p.iframeTitle} srcDoc={result.html} sandbox="allow-same-origin allow-popups" />
+              </div>
+            )}
+            {result && view === 'html' && <pre className="bree-code">{result.html}</pre>}
+            {result && view === 'text' && <pre className="bree-code">{result.text}</pre>}
+          </div>
         </div>
       </div>
-    </div>
+    </EditorFocusScope>,
+    document.body,
   );
 }
