@@ -15,6 +15,12 @@ const FPS = Number(process.env.FPS ?? 60);
 const SPEED = Number(process.env.SPEED ?? 1.5);
 /** Seconds the last frame is held at the end. */
 const HOLD = Number(process.env.HOLD ?? 1);
+/** Backdrop: "light" (default) or "dark", both neutral. */
+const THEMES = {
+  light: { backdrop: ['#f3f4f6', '#e2e5ea', 0.6], shadow: 'rgba(15, 23, 42, 0.16)' },
+  dark: { backdrop: ['#2a2e35', '#1b1e23', 0.06], shadow: 'rgba(0, 0, 0, 0.45)' },
+};
+const { backdrop: BACKDROP, shadow: SHADOW } = THEMES[process.env.BACKDROP ?? 'light'];
 const W = 1920;
 const H = 1080;
 const { viewport, frames, timeline } = JSON.parse(readFileSync(`${OUT}/timeline.json`, 'utf-8'));
@@ -84,10 +90,14 @@ function stepCamera(t, dt) {
   const target = lastEvent(t, ['camera']) ?? { z: 1, x: viewport.width / 2, y: viewport.height / 2 };
   const scene = toScene(target.x, target.y);
   const goal = { z: target.z, ...clampCenter(target.z, scene.x, scene.y) };
-  for (const k of ['z', 'x', 'y']) {
-    const v = `v${k}`;
-    cam[v] += (omega * omega * (goal[k] - cam[k]) - 2 * omega * cam[v]) * dt;
-    cam[k] += cam[v] * dt;
+  // Sub-steps keep the integration stable at any output frame rate.
+  const steps = Math.ceil(dt * 240);
+  for (let i = 0; i < steps; i++) {
+    for (const k of ['z', 'x', 'y']) {
+      const v = `v${k}`;
+      cam[v] += (omega * omega * (goal[k] - cam[k]) - 2 * omega * cam[v]) * (dt / steps);
+      cam[k] += cam[v] * (dt / steps);
+    }
   }
   const c = clampCenter(cam.z, cam.x, cam.y);
   return { z: cam.z, x: c.x, y: c.y };
@@ -131,6 +141,8 @@ const html = `<!doctype html><html><head><meta charset="utf-8"></head><body styl
 <canvas id="c" width="${W}" height="${H}"></canvas>
 <script>
 const W = ${W}, H = ${H}, TITLE = ${TITLE};
+const BACKDROP = ${JSON.stringify(BACKDROP)};
+const SHADOW = ${JSON.stringify(SHADOW)};
 const win = ${JSON.stringify(win)};
 const ctx = document.getElementById('c').getContext('2d');
 ctx.imageSmoothingQuality = 'high';
@@ -140,22 +152,22 @@ const FONT = '"Segoe UI", Inter, system-ui, sans-serif';
 const backdrop = new OffscreenCanvas(W, H);
 {
   const b = backdrop.getContext('2d');
-  const g = b.createLinearGradient(0, 0, W, H);
-  g.addColorStop(0, '#312e81');
-  g.addColorStop(0.5, '#6d28d9');
-  g.addColorStop(1, '#db2777');
+  // Quiet backdrop: a soft vertical gradient with a faint light from the top.
+  const g = b.createLinearGradient(0, 0, 0, H);
+  g.addColorStop(0, BACKDROP[0]);
+  g.addColorStop(1, BACKDROP[1]);
   b.fillStyle = g;
   b.fillRect(0, 0, W, H);
-  const r = b.createRadialGradient(W * 0.25, H * 0.15, 0, W * 0.25, H * 0.15, W * 0.7);
-  r.addColorStop(0, 'rgba(255,255,255,0.18)');
+  const r = b.createRadialGradient(W / 2, 0, 0, W / 2, 0, W * 0.6);
+  r.addColorStop(0, 'rgba(255,255,255,' + BACKDROP[2] + ')');
   r.addColorStop(1, 'rgba(255,255,255,0)');
   b.fillStyle = r;
   b.fillRect(0, 0, W, H);
   // Window shadow + title bar.
   b.save();
-  b.shadowColor = 'rgba(15, 10, 40, 0.45)';
-  b.shadowBlur = 70;
-  b.shadowOffsetY = 24;
+  b.shadowColor = SHADOW;
+  b.shadowBlur = 60;
+  b.shadowOffsetY = 18;
   b.fillStyle = '#ffffff';
   b.beginPath(); b.roundRect(win.x, win.y, win.w, win.h, 14); b.fill();
   b.restore();
@@ -166,6 +178,9 @@ const backdrop = new OffscreenCanvas(W, H);
   b.fillStyle = '#e5e7eb';
   b.fillRect(win.x, win.y + TITLE - 1, win.w, 1);
   b.restore();
+  b.strokeStyle = 'rgba(15, 23, 42, 0.10)';
+  b.lineWidth = 1;
+  b.beginPath(); b.roundRect(win.x - 0.5, win.y - 0.5, win.w + 1, win.h + 1, 14.5); b.stroke();
   ['#ff5f57', '#febc2e', '#28c840'].forEach((c, i) => {
     b.fillStyle = c; b.beginPath(); b.arc(win.x + 22 + i * 20, win.y + TITLE / 2, 6, 0, Math.PI * 2); b.fill();
   });
@@ -249,6 +264,7 @@ window.draw = async (s) => {
 
 const browser = await chromium.launch({ channel: 'msedge', headless: true });
 const page = await browser.newPage({ viewport: { width: W, height: H } });
+page.on('pageerror', (e) => console.log('[compositor]', e.message));
 await page.route('http://demo.local/raw/**', (route) =>
   route.fulfill({ path: resolve(OUT, 'raw', route.request().url().split('/').pop()), contentType: 'image/jpeg' }),
 );

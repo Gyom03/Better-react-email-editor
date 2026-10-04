@@ -1,10 +1,8 @@
 # better-react-email-editor
 
-A drag & drop email builder for React, in the spirit of [Unlayer](https://unlayer.com). It renders **inside your app** (no iframe) and is built on [`@react-email/editor`](https://www.npmjs.com/package/@react-email/editor) (Tiptap / ProseMirror, with React Email for the export).
+**A drag & drop email builder that runs inside your React app.**
 
-Every screen and menu is a separate component. Use the all-in-one editor, or compose your own layout from the parts. Every component accepts `className` and `style`. The UI ships in **English** (default) and **French**.
-
-[Lire en français](./README.fr.md)
+Your users build emails visually, the way they would in [Unlayer](https://unlayer.com): they drag blocks into a layout, edit text in place and adjust styles from a side panel. Your app gets the email back as JSON, to store and reload, and as email-ready HTML (table layout, inline styles) to send. The editor renders directly in your page, not in an iframe, and is built on [`@react-email/editor`](https://www.npmjs.com/package/@react-email/editor) (Tiptap / ProseMirror for editing, React Email for the HTML).
 
 [![Demo: place an image, edit a heading, export the HTML](./docs/demo.webp)](./docs/demo.mp4)
 
@@ -363,18 +361,6 @@ The scenarios in `scripts/` drive the playground in French with Playwright. They
 npx vite --port 5179 &
 node scripts/e2e.mjs        # also e2e2 … e2e10, e2e-custom, check-padding; screenshots in ./screenshots
 ```
-
-### Demo video
-
-`scripts/demo/` records a Screen Studio-style demo: gradient backdrop, window frame, smooth zooms, smoothed cursor, click ripples and captions. It needs [ffmpeg](https://ffmpeg.org) on the `PATH`.
-
-```bash
-npx vite --port 5179 &
-npm run demo:record       # drives the playground, captures frames + timeline → demo-output/
-npm run demo:compose      # renders demo-output/demo.mp4 (1080p, 60 fps)
-```
-
-Edit the storyboard at the end of `record.mjs`. `camera(zoom, x, y)` zooms the video on a point and `caption(text)` shows a caption.
 
 ## Known limitations
 
