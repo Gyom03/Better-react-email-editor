@@ -3,7 +3,6 @@ import type { Messages } from './en';
 /** Textes de l'interface en français. */
 export const fr: Messages = {
   topBar: {
-    brand: 'Better Email Editor',
     layers: 'Calques',
     toggleLayers: 'Afficher / masquer les calques',
     undo: 'Annuler (Ctrl+Z)',

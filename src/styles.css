@@ -129,37 +129,24 @@
   z-index: 5;
 }
 
-.bree-brand {
+.bree-topbar-start,
+.bree-topbar-actions {
+  flex: 1;
   display: flex;
   align-items: center;
-  gap: 10px;
-  font-weight: 650;
-  font-size: 15px;
-  white-space: nowrap;
+  gap: 8px;
+  min-width: 0;
 }
 
-.bree-brand-mark {
-  display: grid;
-  place-items: center;
-  width: 30px;
-  height: 30px;
-  border-radius: 8px;
-  background: var(--bree-accent);
-  color: #fff;
-  font-size: 16px;
+.bree-topbar-actions {
+  justify-content: flex-end;
 }
 
 .bree-topbar-center {
-  flex: 1;
   display: flex;
   justify-content: center;
   align-items: center;
   gap: 12px;
-}
-
-.bree-topbar-actions {
-  display: flex;
-  gap: 8px;
 }
 
 .bree-btn-group {

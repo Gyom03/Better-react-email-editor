@@ -13,16 +13,15 @@ interface DropState {
 }
 
 export interface LayersPanelProps extends StyleProps {
-  /** Called by the close button. Defaults to hiding the panel (`setLayersOpen(false)`); pass `null` to hide the button. */
-  onClose?: (() => void) | null;
+  /** Shows a close button that calls it, e.g. `() => setLayersOpen(false)` when you also render a `LayersToggle`. */
+  onClose?: () => void;
   /** Panel title. Defaults to the localized "Layers". */
   title?: string;
 }
 
 /** Tree of the email (Photoshop-like layers): select, hover, reorder and nest blocks by drag & drop. */
 export function LayersPanel({ onClose, title, className, style }: LayersPanelProps) {
-  const { editor, t, locale, nodes, nodeLabel, dragSession, hoverStore, setLayersOpen } = useEmailEditor();
-  const close = onClose === undefined ? () => setLayersOpen(false) : onClose;
+  const { editor, t, locale, nodes, nodeLabel, dragSession, hoverStore } = useEmailEditor();
   const itemLabel = (item: LayerItem) =>
     item.node.type.name === 'columnsColumn' ? t.layers.column(item.index) : nodeLabel(item.node.type.name);
   const itemPreview = (item: LayerItem) => (nodes.get(item.node.type.name)?.preview ?? textPreview)(item.node, { locale, t });
@@ -209,8 +208,8 @@ export function LayersPanel({ onClose, title, className, style }: LayersPanelPro
             >
               ⊟
             </button>
-            {close && (
-              <button type="button" className="bree-icon-button bree-small" title={t.layers.close} onClick={close}>
+            {onClose && (
+              <button type="button" className="bree-icon-button bree-small" title={t.layers.close} onClick={onClose}>
                 <XIcon size={14} />
               </button>
             )}

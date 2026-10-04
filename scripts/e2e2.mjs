@@ -37,8 +37,8 @@ await page.keyboard.press('Escape');
 await page.waitForTimeout(200);
 console.log('section style:', await page.locator('.tiptap .node-section').first().getAttribute('style'));
 
-// Undo via topbar
-await page.locator('button[title^="Annuler"]').click();
+// Undo (keyboard)
+await page.locator('.tiptap').press('Control+z');
 await page.waitForTimeout(200);
 console.log('section style after undo:', await page.locator('.tiptap .node-section').first().getAttribute('style'));
 
@@ -59,7 +59,8 @@ await shot('14-mobile');
 await page.locator('.bree-device-toggle button[title="Bureau"]').click();
 
 // Preview + export
-await page.locator('.bree-btn', { hasText: 'Aperçu' }).click();
+await page.locator('.bree-btn', { hasText: 'Exporter HTML' }).click();
+await page.locator('.bree-modal .bree-tabs button', { hasText: 'Bureau' }).click();
 await page.waitForSelector('.bree-preview-frame iframe', { timeout: 15000 });
 await page.waitForTimeout(1500);
 await shot('15-preview-desktop');

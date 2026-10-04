@@ -6,7 +6,7 @@ Chaque écran et chaque menu est un composant à part. Prenez l'éditeur complet
 
 [Read in English](./README.md)
 
-![L'éditeur](./docs/screenshot.png)
+[![Démo : placer une image, modifier un titre, exporter le HTML](./docs/demo.webp)](./docs/demo.mp4)
 
 ## Fonctionnalités
 
@@ -16,7 +16,7 @@ Chaque écran et chaque menu est un composant à part. Prenez l'éditeur complet
 - **Propriétés** : un panneau par type de bloc (typographie, marges, fond, bordure, liens, largeur des colonnes, réseaux, HTML…) et un fil d'Ariane de la hiérarchie.
 - **Édition du texte** directement dans le canvas, avec menu flottant et commandes `/`.
 - **Copier / coller** de blocs et de texte, annuler / rétablir.
-- **Aperçu et export** : bureau et mobile, HTML (copier ou télécharger), texte brut et JSON.
+- **Export** : un bouton ouvre l'email rendu : aperçu bureau et mobile, HTML (copier ou télécharger) et texte brut.
 - **Modulaire** : on remplace, restyle ou réorganise n'importe quelle partie, et on ajoute ses propres blocs, tuiles, modèles et panneaux.
 - **Traductions** : anglais et français fournis, chaque texte est surchargeable.
 
@@ -114,9 +114,10 @@ Tous acceptent `className` et `style`, et doivent être rendus dans `EditorRoot`
 | --- | --- |
 | `EditorRoot` | Fournisseur : crée l'éditeur et le partage. Rend un `div.bree`. |
 | `Canvas` | L'email éditable et son calque (contours, poignée, barre d'outils, indicateur de dépôt). Props : `overlay`, `bubbleMenu`, `slashCommands`. |
-| `TopBar` | Barre du haut. Props : `brand`, `actions`, `showLayersToggle`, ou `children` pour remplacer son contenu. |
-| `LayersToggle`, `UndoRedo`, `DeviceToggle`, `TemplateButton`, `ImportButton`, `ExportJsonButton`, `PreviewButton`, `ExportHtmlButton` | Les contrôles de la barre, utilisables seuls. |
-| `LayersPanel` | Arbre des calques. Props : `title`, `onClose` (`null` masque la croix). |
+| `TopBar` | Barre du haut : choix bureau / mobile et bouton d'export. Props : `brand` (côté gauche, vide par défaut), `actions` (contrôles ajoutés avant l'export), ou `children` pour remplacer son contenu. |
+| `DeviceToggle`, `ExportHtmlButton` | Les contrôles de la barre par défaut. |
+| `LayersToggle`, `UndoRedo`, `TemplateButton`, `ImportButton`, `ExportJsonButton`, `PreviewButton` | Contrôles optionnels, absents par défaut : à ajouter via `actions` ou votre propre barre. |
+| `LayersPanel` | Arbre des calques. Props : `title`, et `onClose` pour afficher une croix de fermeture. |
 | `Sidebar` | Panneau de droite. Il bascule entre trois écrans, chacun remplaçable par `renderDocument`, `renderNode` ou `renderText`. |
 | `ContentPanel` | Écran affiché quand rien n'est sélectionné : les onglets. La prop `tabs` choisit ou réordonne `'content' \| 'blocks' \| 'body'` et accepte vos propres onglets. |
 | `ContentTab` / `PaletteTile` | Palette de tuiles à glisser. |
@@ -183,7 +184,7 @@ Les variables disponibles sont listées dans le [README anglais](./README.md#sty
 <BetterEmailEditor locale="fr" />
 
 // Changer quelques textes
-<BetterEmailEditor locale="fr" messages={{ topBar: { brand: 'Acme Mailer' }, palette: { card: 'Bloc info' } }} />
+<BetterEmailEditor locale="fr" messages={{ topBar: { exportHtml: 'Exporter' }, palette: { card: 'Bloc info' } }} />
 
 // Ajouter une langue : fournir tous les textes, en partant de `en`
 import { en, type Messages } from 'better-react-email-editor';
@@ -195,12 +196,13 @@ const de: Messages = { ...en, topBar: { ...en.topBar, preview: 'Vorschau' /* …
 
 ## Étendre
 
-Tuile de palette, modèle, panneau de propriétés, nouveau type de bloc ou retrait d'une partie : les exemples de code sont dans la section [Extending du README anglais](./README.md#extending). En bref :
+Tuile de palette, modèle, panneau de propriétés, nouveau type de bloc, ajout ou retrait de contrôles : les exemples de code sont dans la section [Extending du README anglais](./README.md#extending). En bref :
 
 - `palette={[maTuile, ...defaultPalette]}` ajoute une tuile. Son `label` et son `content` reçoivent `{ locale, t }`, ce qui permet de la traduire.
 - `templates={[...defaultTemplates, monModele]}` ajoute une ligne préfabriquée.
 - `nodes={defaultNodes.map(...)}` remplace le panneau d'un bloc (`inspector`), son icône ou son libellé.
 - `nodes={[...defaultNodes, monNoeud]}` ajoute un type de bloc créé avec `EmailNode.create` (voir `src/nodes/custom-nodes.tsx`).
+- La barre du haut ne contient par défaut que le choix bureau / mobile et l'export. `slotProps={{ topBar: { brand: <MonLogo />, actions: <><UndoRedo /><PreviewButton /></> } }}` ajoute un logo et des contrôles (`UndoRedo`, `PreviewButton`, `ExportJsonButton`, `ImportButton`, `TemplateButton`, `LayersToggle`).
 - `content` fournit des helpers pour construire le JSON du document : `paragraph`, `heading`, `button`, `image`, `columns`, `section`, `padding`…
 
 ## Développement

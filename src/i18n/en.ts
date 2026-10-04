@@ -1,7 +1,6 @@
 /** English UI strings (default locale). Every other locale implements the same shape. */
 export const en = {
   topBar: {
-    brand: 'Better Email Editor',
     layers: 'Layers',
     toggleLayers: 'Show / hide layers',
     undo: 'Undo (Ctrl+Z)',

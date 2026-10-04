@@ -6,7 +6,7 @@ Every screen and menu is a separate component. Use the all-in-one editor, or com
 
 [Lire en français](./README.fr.md)
 
-![The editor](./docs/screenshot.png)
+[![Demo: place an image, edit a heading, export the HTML](./docs/demo.webp)](./docs/demo.mp4)
 
 ## Features
 
@@ -16,7 +16,7 @@ Every screen and menu is a separate component. Use the all-in-one editor, or com
 - **Properties panel**: one panel per block type (typography, spacing, background, border, links, column widths, social networks, HTML…) and a breadcrumb of the hierarchy.
 - **Inline text editing**: floating menu and `/` commands.
 - **Copy / paste** of blocks and text, and undo / redo.
-- **Preview and export**: desktop and mobile preview, HTML (copy or download), plain text and JSON.
+- **Export**: one button opens the rendered email: desktop and mobile preview, HTML (copy or download) and plain text.
 - **Modular**: replace, restyle or rearrange any part, and add your own blocks, palette items, templates and properties panels.
 - **i18n**: English and French are built in, and you can override any string.
 
@@ -114,9 +114,10 @@ Every component below accepts `className` and `style`, and must be rendered insi
 | --- | --- |
 | `EditorRoot` | Provider: creates the editor and shares it. Renders a `div.bree`. |
 | `Canvas` | The editable email, with its overlay (frames, handle, toolbar, drop indicator). Props: `overlay`, `bubbleMenu`, `slashCommands`. |
-| `TopBar` | Top bar. Props: `brand`, `actions`, `showLayersToggle`, or `children` to replace its content. |
-| `LayersToggle`, `UndoRedo`, `DeviceToggle`, `TemplateButton`, `ImportButton`, `ExportJsonButton`, `PreviewButton`, `ExportHtmlButton` | The top bar controls, usable on their own. |
-| `LayersPanel` | Layers tree. Props: `title`, `onClose` (`null` hides the close button). |
+| `TopBar` | Top bar: desktop / mobile toggle and the export button. Props: `brand` (left side, empty by default), `actions` (extra controls before the export button), or `children` to replace its content. |
+| `DeviceToggle`, `ExportHtmlButton` | The default top bar controls. |
+| `LayersToggle`, `UndoRedo`, `TemplateButton`, `ImportButton`, `ExportJsonButton`, `PreviewButton` | Optional controls, not shown by default: add them through `actions` or your own bar. |
+| `LayersPanel` | Layers tree. Props: `title`, and `onClose` to show a close button. |
 | `Sidebar` | Right panel. Switches between three screens; override any of them with `renderDocument`, `renderNode` or `renderText`. |
 | `ContentPanel` | Screen shown when nothing is selected: tabs. Prop `tabs` picks or reorders `'content' \| 'blocks' \| 'body'` and accepts your own tabs. |
 | `ContentTab` / `PaletteTile` | Palette of draggable tiles. |
@@ -195,7 +196,7 @@ The default layout is a CSS grid on `.bree-layout`. The color picker popover is 
 <BetterEmailEditor locale="fr" />
 
 // Override a few strings
-<BetterEmailEditor locale="en" messages={{ topBar: { brand: 'Acme Mailer' }, palette: { card: 'Callout' } }} />
+<BetterEmailEditor locale="en" messages={{ topBar: { exportHtml: 'Export' }, palette: { card: 'Callout' } }} />
 
 // Add a language: provide every string, starting from `en`
 import { en, type Messages } from 'better-react-email-editor';
@@ -287,14 +288,36 @@ const countdownNode: NodeDefinition = {
 
 See `src/nodes/custom-nodes.tsx` for complete examples (spacer, social links, raw HTML).
 
-### Removing things
+### Adding or removing controls
+
+The default top bar only has the device toggle and the export button. Add the optional controls back, or remove parts:
 
 ```tsx
+import { UndoRedo, PreviewButton, ExportJsonButton, LayersToggle } from 'better-react-email-editor';
+
+<BetterEmailEditor
+  slotProps={{
+    topBar: { brand: <img src="/logo.svg" alt="Acme" height={28} />, actions: <><UndoRedo /><ExportJsonButton /><PreviewButton /></> },
+  }}
+/>
+
 <BetterEmailEditor
   palette={defaultPalette.filter((item) => item.id !== 'html')}
   showLayers={false}
   slotProps={{ sidebar: { renderDocument: (ctx) => <ContentPanel ctx={ctx} tabs={['content', 'body']} /> } }}
 />
+```
+
+To let users hide and show the layers panel, add a `LayersToggle` and give the panel a close button:
+
+```tsx
+const [layersOpen, setLayersOpen] = useState(true);
+
+<BetterEmailEditor
+  layersOpen={layersOpen}
+  onLayersOpenChange={setLayersOpen}
+  slotProps={{ topBar: { actions: <LayersToggle /> }, layersPanel: { onClose: () => setLayersOpen(false) } }}
+/>;
 ```
 
 ## Headless core

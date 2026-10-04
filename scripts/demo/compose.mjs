@@ -11,6 +11,10 @@ import { resolve } from 'node:path';
 
 const OUT = process.env.OUT ?? 'demo-output';
 const FPS = Number(process.env.FPS ?? 60);
+/** Playback speed: 1.5 plays the recording 1.5× faster (camera springs keep real time). */
+const SPEED = Number(process.env.SPEED ?? 1.5);
+/** Seconds the last frame is held at the end. */
+const HOLD = Number(process.env.HOLD ?? 1);
 const W = 1920;
 const H = 1080;
 const { viewport, frames, timeline } = JSON.parse(readFileSync(`${OUT}/timeline.json`, 'utf-8'));
@@ -31,8 +35,10 @@ const toScene = (x, y) => ({ x: contentX + x, y: contentY + y });
 // ---------------------------------------------------------------------------
 
 const t0 = Math.min(timeline[0].t, frames[0].t);
-const tEnd = timeline.at(-1).t + 0.4;
-const total = Math.ceil((tEnd - t0) * FPS);
+const tEnd = timeline.at(-1).t;
+const total = Math.ceil(((tEnd - t0) / SPEED + HOLD) * FPS);
+// Click ripples last 0.4s of video.
+const RIPPLE = 0.4 * SPEED;
 const moves = timeline.filter((e) => e.type === 'move');
 const downs = timeline.filter((e) => e.type === 'down');
 
@@ -99,13 +105,13 @@ function captionAt(t) {
 }
 
 function stateAt(n, dt) {
-  const t = t0 + n / FPS;
+  const t = Math.min(t0 + (n / FPS) * SPEED, tEnd);
   const pointer = cursorAt(t);
   const lastDown = lastEvent(t, ['down', 'up']);
   const drag = lastEvent(t, ['drag', 'dragend']);
   const ripples = downs
-    .filter((d) => t >= d.t && t - d.t < 0.5)
-    .map((d) => ({ ...toScene(...Object.values(cursorAt(d.t))), age: (t - d.t) / 0.5 }));
+    .filter((d) => t >= d.t && t - d.t < RIPPLE)
+    .map((d) => ({ ...toScene(...Object.values(cursorAt(d.t))), age: (t - d.t) / RIPPLE }));
   return {
     frame: frameAt(t),
     camera: stepCamera(t, dt),
@@ -269,4 +275,4 @@ for (let n = 0; n < total; n++) {
 ffmpeg.stdin.end();
 await done;
 await browser.close();
-console.log(`wrote ${output} — ${(total / FPS).toFixed(1)}s at ${FPS} fps`);
+console.log(`wrote ${output} — ${(total / FPS).toFixed(1)}s at ${FPS} fps (x${SPEED})`);

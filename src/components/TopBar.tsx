@@ -161,47 +161,31 @@ export function ExportHtmlButton(props: StyleProps) {
 }
 
 export interface TopBarProps extends StyleProps {
-  /** Left side. Default: the "Better Email Editor" logo. `null` hides it. */
+  /** Left side, e.g. your logo. Empty by default. */
   brand?: ReactNode;
-  /** Replaces the whole default content (brand stays) with your own controls. */
-  children?: ReactNode;
-  /** Hide the layers toggle (e.g. when there is no layers panel). */
-  showLayersToggle?: boolean;
-  /** Extra controls added before the default actions on the right. */
+  /** Extra controls placed before the export button. */
   actions?: ReactNode;
+  /** Replaces the default controls (device toggle + export) with your own. */
+  children?: ReactNode;
 }
 
-/** Top bar: layers toggle, undo / redo, device toggle, template, import / export, preview. */
-export function TopBar({ brand, children, showLayersToggle = true, actions, className, style }: TopBarProps) {
-  const { t } = useEmailEditor();
-  const brandNode =
-    brand === undefined ? (
-      <div className="bree-brand">
-        <span className="bree-brand-mark" aria-hidden>
-          ✉
-        </span>
-        <span>{t.topBar.brand}</span>
-      </div>
-    ) : (
-      brand
-    );
+/**
+ * Top bar: device toggle (desktop / mobile) and the export button. Add more
+ * controls with `actions`, or compose your own bar from `LayersToggle`,
+ * `UndoRedo`, `TemplateButton`, `ImportButton`, `ExportJsonButton`, `PreviewButton`…
+ */
+export function TopBar({ brand, actions, children, className, style }: TopBarProps) {
   return (
     <EditorFocusScope>
       <header className={cx('bree-topbar', className)} style={style}>
-        {brandNode}
+        <div className="bree-topbar-start">{brand}</div>
         {children ?? (
           <>
             <div className="bree-topbar-center">
-              {showLayersToggle && <LayersToggle />}
-              <UndoRedo />
               <DeviceToggle />
             </div>
             <div className="bree-topbar-actions">
               {actions}
-              <TemplateButton />
-              <ImportButton />
-              <ExportJsonButton />
-              <PreviewButton />
               <ExportHtmlButton />
             </div>
           </>

@@ -46,7 +46,7 @@ await page.waitForTimeout(200);
 console.log('closed:', !(await page.locator('.bree-color-popover').isVisible().catch(() => false)), '| panel:', await panel());
 
 // Undo groups the picker changes
-await page.locator('button[title^="Annuler"]').click();
+await page.locator('.tiptap').press('Control+z');
 await page.waitForTimeout(200);
 console.log('after undo  -> bg:', await sectionBg());
 await page.screenshot({ path: `${OUT}/a1-color-after.png` });

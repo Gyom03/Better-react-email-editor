@@ -18,9 +18,9 @@ function initialLocale() {
   return lang === 'fr' || lang === 'en' ? lang : 'en';
 }
 
-/** Demo app: the library with autosave in localStorage and a language switch. */
+/** Demo app: the library with autosave in localStorage. `?lang=fr` switches the UI to French. */
 export default function App() {
-  const [locale, setLocale] = useState(initialLocale);
+  const [locale] = useState(initialLocale);
   const [defaultValue] = useState<EmailValue>(
     () => loadSaved() ?? { doc: createStarterDocument({ locale, t: resolveMessages(locale) }), settings: { previewText: '' } },
   );
@@ -37,31 +37,10 @@ export default function App() {
     }, 400);
   };
 
-  const changeLocale = (next: string) => {
-    setLocale(next);
-    const url = new URL(window.location.href);
-    url.searchParams.set('lang', next);
-    window.history.replaceState(null, '', url);
-  };
-
   // ?example=custom shows the same editor composed by hand.
   if (new URLSearchParams(window.location.search).get('example') === 'custom') return <CustomLayout locale={locale} />;
 
   return (
-    <BetterEmailEditor
-      locale={locale}
-      defaultValue={defaultValue}
-      onChange={persist}
-      slotProps={{
-        topBar: {
-          actions: (
-            <select className="locale-select" value={locale} onChange={(e) => changeLocale(e.target.value)} aria-label="Language">
-              <option value="en">English</option>
-              <option value="fr">Français</option>
-            </select>
-          ),
-        },
-      }}
-    />
+    <BetterEmailEditor locale={locale} defaultValue={defaultValue} onChange={persist} />
   );
 }

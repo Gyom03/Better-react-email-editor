@@ -5,15 +5,6 @@ body,
   margin: 0;
 }
 
-.locale-select {
-  height: 34px;
-  padding: 0 8px;
-  border: 1px solid var(--bree-border-strong);
-  border-radius: var(--bree-radius);
-  background: var(--bree-bg);
-  font: inherit;
-  font-size: 13px;
-}
 
 /* ?example=custom */
 .custom-layout {

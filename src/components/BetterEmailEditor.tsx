@@ -16,7 +16,7 @@ export interface BetterEmailEditorComponents {
 export interface BetterEmailEditorProps extends Omit<EditorRootProps, 'children'> {
   /** Show the top bar. Default: true. */
   showTopBar?: boolean;
-  /** Offer the layers panel (and its toggle). Default: true. */
+  /** Show the layers panel. Default: true. */
   showLayers?: boolean;
   /** Show the right sidebar. Default: true. */
   showSidebar?: boolean;
@@ -50,7 +50,7 @@ function DefaultLayout({
         showSidebar && 'bree-with-sidebar',
       )}
     >
-      {showTopBar && <Top showLayersToggle={showLayers} {...slotProps.topBar} />}
+      {showTopBar && <Top {...slotProps.topBar} />}
       {withLayers && <Layers {...slotProps.layersPanel} />}
       <Main {...slotProps.canvas} />
       {showSidebar && <Side {...slotProps.sidebar} />}
