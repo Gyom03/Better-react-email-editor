@@ -195,6 +195,7 @@ All classes are prefixed with `bree-`, and the stylesheet never touches global e
 | `--bree-accent`, `--bree-accent-hover`, `--bree-accent-soft` | `#2563eb`, `#1d4ed8`, `#eff6ff` |
 | `--bree-danger` | `#dc2626` |
 | `--bree-radius` | `8px` |
+| `--bree-frame-gap` (space between a block and its hover / selection frame) | `4px` |
 | `--bree-canvas-bg` | `#eef1f5` |
 | `--bree-topbar-height`, `--bree-sidebar-width`, `--bree-layers-width` | `56px`, `360px`, `270px` |
 | `--bree-font` | Inter, system-ui… |

@@ -19,6 +19,7 @@
   --bree-accent-soft: #eff6ff;
   --bree-danger: #dc2626;
   --bree-radius: 8px;
+  --bree-frame-gap: 4px;
   --bree-canvas-bg: #eef1f5;
   --bree-topbar-height: 56px;
   --bree-sidebar-width: 360px;
@@ -358,6 +359,14 @@
   position: absolute;
   pointer-events: none;
   border-radius: 2px;
+}
+
+/* Hover and selection frames sit a few pixels off the block, not on its content. */
+.bree-ov-hover,
+.bree-ov-selected {
+  box-sizing: content-box;
+  padding: var(--bree-frame-gap);
+  margin: calc(var(--bree-frame-gap) * -1);
 }
 
 .bree-ov-hover {
