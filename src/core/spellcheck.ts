@@ -4,22 +4,49 @@ import { Decoration, DecorationSet } from '@tiptap/pm/view';
 
 /**
  * Spell check only where the user is writing: the text blocks of the
- * selection, while the editor has focus. The rest of the email shows no red
- * underlines. Tiptap dispatches a transaction on focus and blur, so the
- * decorations follow.
+ * selection, while the editable area has the browser focus. The rest of the
+ * email shows no red underlines.
+ *
+ * Tracks DOM focus itself: `editor.isFocused` stays true while the user works
+ * in the sidebar or top bar (the package's focus scopes keep the selection
+ * alive for the properties panel).
+ *
+ * Firefox keeps underlines when a block's `spellcheck` attribute turns off, so
+ * spell check is disabled there altogether.
  */
 export const FocusedSpellcheck = Extension.create({
   name: 'focusedSpellcheck',
 
   addProseMirrorPlugins() {
-    const { editor } = this;
+    const key = new PluginKey<boolean>('focusedSpellcheck');
+    const firefox = typeof navigator !== 'undefined' && /firefox/i.test(navigator.userAgent);
+    let domFocused = false;
     return [
-      new Plugin({
-        key: new PluginKey('focusedSpellcheck'),
+      new Plugin<boolean>({
+        key,
+        state: {
+          init: () => false,
+          // Redrawing while the click's mousedown is in progress (Tiptap's own
+          // focus transaction) writes the previous selection back to the DOM,
+          // and the caret lands in the old block. Skip that transaction: the
+          // click's selection transaction comes right after.
+          apply: (tr, active) => (tr.getMeta('focus') ? active : domFocused),
+        },
         props: {
           attributes: { spellcheck: 'false' },
+          handleDOMEvents: {
+            focus: () => {
+              domFocused = true;
+              return false;
+            },
+            blur: (view) => {
+              domFocused = false;
+              view.dispatch(view.state.tr.setMeta('addToHistory', false));
+              return false;
+            },
+          },
           decorations: (state) => {
-            if (!editor.isFocused) return DecorationSet.empty;
+            if (firefox || !key.getState(state)) return DecorationSet.empty;
             const { from, to, $from } = state.selection;
             const decorations: Decoration[] = [];
             state.doc.nodesBetween(from, to, (node, pos) => {
