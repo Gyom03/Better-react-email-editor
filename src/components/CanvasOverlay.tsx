@@ -145,7 +145,7 @@ export function CanvasOverlay({ editor, host }: { editor: Editor; host: HTMLElem
   useEffect(() => {
     const onDown = (event: MouseEvent) => {
       if (event.button !== 0 || event.shiftKey || event.metaKey || event.ctrlKey) return;
-      if ((event.target as HTMLElement).closest('.bree-ov-layer')) return;
+      if ((event.target as HTMLElement).closest('.bree-ov-layer, .bree-canvas-header')) return;
       const background = [host, editor.view.dom, editor.view.dom.parentElement];
       if (background.includes(event.target as HTMLElement)) {
         event.preventDefault();

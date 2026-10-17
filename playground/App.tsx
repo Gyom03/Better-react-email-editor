@@ -41,6 +41,6 @@ export default function App() {
   if (new URLSearchParams(window.location.search).get('example') === 'custom') return <CustomLayout locale={locale} />;
 
   return (
-    <BetterEmailEditor locale={locale} defaultValue={defaultValue} onChange={persist} />
+    <BetterEmailEditor locale={locale} defaultValue={defaultValue} onChange={persist} showEmailHeader />
   );
 }

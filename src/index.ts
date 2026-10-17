@@ -22,6 +22,7 @@ export {
 // Screens
 export { Canvas, type CanvasProps } from './components/Canvas';
 export { CanvasOverlay } from './components/CanvasOverlay';
+export { EmailHeader, type EmailHeaderProps } from './components/EmailHeader';
 export {
   TopBar,
   LayersToggle,

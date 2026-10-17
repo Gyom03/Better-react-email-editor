@@ -46,6 +46,12 @@ export const fr: Messages = {
     breadcrumb: 'Hiérarchie',
     selectedText: 'Texte sélectionné',
   },
+  emailHeader: {
+    subject: 'Objet',
+    subjectPlaceholder: 'Objet de l’email',
+    previewText: 'Aperçu',
+    previewTextPlaceholder: 'Affiché après l’objet dans la boîte de réception',
+  },
   body: {
     general: 'Général',
     previewText: 'Texte d’aperçu',

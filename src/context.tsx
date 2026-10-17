@@ -31,6 +31,8 @@ import { createStarterDocument, defaultTemplates } from './registry/default-temp
 import type { NodeDefinition, PaletteGroup, PaletteItem, TemplateItem } from './registry/types';
 
 export interface EmailSettings {
+  /** Subject line. Not part of the rendered HTML: send it with your email provider. */
+  subject?: string;
   /** Inbox preview line (shown after the subject). */
   previewText: string;
 }
@@ -169,9 +171,10 @@ function isEmailValue(value: unknown): value is EmailValue {
 }
 
 function normalize(value: EmailValue | JSONContent | undefined): EmailValue {
-  if (!value) return { doc: EMPTY_DOC, settings: { previewText: '' } };
-  if (isEmailValue(value)) return { doc: value.doc, settings: { ...value.settings, previewText: value.settings?.previewText ?? '' } };
-  return { doc: value, settings: { previewText: '' } };
+  const empty: EmailSettings = { subject: '', previewText: '' };
+  if (!value) return { doc: EMPTY_DOC, settings: empty };
+  if (isEmailValue(value)) return { doc: value.doc, settings: { ...empty, ...value.settings, previewText: value.settings?.previewText ?? '' } };
+  return { doc: value, settings: empty };
 }
 
 function useControllable<T>(value: T | undefined, defaultValue: T, onChange?: (value: T) => void) {

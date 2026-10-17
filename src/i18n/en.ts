@@ -44,6 +44,12 @@ export const en = {
     breadcrumb: 'Hierarchy',
     selectedText: 'Selected text',
   },
+  emailHeader: {
+    subject: 'Subject',
+    subjectPlaceholder: 'Subject line',
+    previewText: 'Preview',
+    previewTextPlaceholder: 'Shown after the subject line in the inbox',
+  },
   body: {
     general: 'General',
     previewText: 'Preview text',

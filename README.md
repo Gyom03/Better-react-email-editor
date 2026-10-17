@@ -83,6 +83,8 @@ const { html, text } = await ref.current.exportEmail(); // ready-to-send email
 | `getHtml()` / `getText()` | Shortcuts for `exportEmail()`. |
 | `insertBlocks(json[])` | Appends blocks at the end of the email. |
 
+`settings` holds `subject` and `previewText`. The preview text is rendered into the HTML; the subject is not, so pass it to your email provider.
+
 `defaultValue` is read on mount. The editor is uncontrolled, because re-applying a document on every keystroke would reset the cursor. Use `setValue` to replace the content later.
 
 ## Props
@@ -114,6 +116,7 @@ Layout props, `BetterEmailEditor` only:
 | Prop | Description |
 | --- | --- |
 | `showTopBar`, `showLayers`, `showSidebar` | Hide a part (all `true` by default). |
+| `showEmailHeader` | Show a card with the subject and preview text above the email (`false` by default). |
 | `slotProps` | Props for each part, e.g. `{ sidebar: { className: 'my-sidebar' }, topBar: { actions: <MyButton /> } }`. |
 | `components` | Replace a part entirely: `{ TopBar, LayersPanel, Canvas, Sidebar }`. |
 
@@ -124,7 +127,8 @@ Every component below accepts `className` and `style`, and must be rendered insi
 | Component | What it is |
 | --- | --- |
 | `EditorRoot` | Provider: creates the editor and shares it. Renders a `div.bree`. |
-| `Canvas` | The editable email, with its overlay (frames, handle, toolbar, drop indicator). Props: `overlay`, `bubbleMenu`, `slashCommands`. |
+| `Canvas` | The editable email, with its overlay (frames, handle, toolbar, drop indicator). Props: `overlay`, `bubbleMenu`, `slashCommands`, `header` (subject and preview text card above the email). |
+| `EmailHeader` | The subject and preview text card on its own, to place anywhere. |
 | `TopBar` | Top bar: desktop / mobile toggle and the export button. Props: `brand` (left side, empty by default), `actions` (extra controls before the export button), or `children` to replace its content. |
 | `DeviceToggle`, `ExportHtmlButton` | The default top bar controls. |
 | `LayersToggle`, `UndoRedo`, `TemplateButton`, `ImportButton`, `ExportJsonButton`, `PreviewButton` | Optional controls, not shown by default: add them through `actions` or your own bar. |

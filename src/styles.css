@@ -230,6 +230,91 @@
   padding-bottom: 160px !important;
 }
 
+/* Subject / preview card above the email (`<Canvas header>`). Its width and
+ * background follow the email, measured by Canvas. */
+.bree-canvas:has(> .bree-canvas-header) {
+  display: flex;
+  flex-direction: column;
+}
+
+.bree-canvas:has(> .bree-canvas-header) > .bree-canvas-content {
+  display: flex;
+  flex: 1 0 auto;
+  flex-direction: column;
+  min-height: 0;
+}
+
+.bree-canvas:has(> .bree-canvas-header) > .bree-canvas-content > .tiptap {
+  flex: 1 0 auto;
+  min-height: 0;
+}
+
+.bree-canvas-header {
+  flex: none;
+  padding: 32px 16px 0;
+}
+
+.bree-canvas-header > .bree-email-header {
+  width: 600px;
+  max-width: 100%;
+  margin: 0 auto;
+  transition: width 0.2s ease;
+}
+
+.bree-email-header {
+  overflow: hidden;
+  border-radius: 12px;
+  background: var(--bree-bg);
+  box-shadow: 0 1px 2px rgb(15 23 42 / 0.06), 0 8px 24px rgb(15 23 42 / 0.06);
+}
+
+.bree-email-header-row {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  min-height: 44px;
+  padding: 0 20px;
+}
+
+.bree-email-header-row + .bree-email-header-row {
+  border-top: 1px solid var(--bree-border);
+}
+
+.bree-email-header-row > label {
+  flex: none;
+  width: 72px;
+  font-size: 13px;
+  color: var(--bree-muted);
+}
+
+.bree-email-header-row > input {
+  flex: 1;
+  min-width: 0;
+  height: 44px;
+  padding: 0;
+  border: 0;
+  outline: none;
+  background: transparent;
+  font: inherit;
+  font-size: 14px;
+  color: var(--bree-text-secondary);
+}
+
+.bree-email-header-row > input.bree-email-header-subject {
+  font-weight: 600;
+  color: var(--bree-text);
+}
+
+.bree-email-header-row > input::placeholder {
+  font-weight: 400;
+  color: var(--bree-muted);
+  opacity: 0.7;
+}
+
+.bree-email-header-row:focus-within > label {
+  color: var(--bree-accent);
+}
+
 .bree-canvas .tiptap .node-container {
   margin-left: auto;
   margin-right: auto;

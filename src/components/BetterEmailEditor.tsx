@@ -20,6 +20,8 @@ export interface BetterEmailEditorProps extends Omit<EditorRootProps, 'children'
   showLayers?: boolean;
   /** Show the right sidebar. Default: true. */
   showSidebar?: boolean;
+  /** Show the subject and preview text fields above the email. Default: false. */
+  showEmailHeader?: boolean;
   /** Replace any part with your own component. */
   components?: BetterEmailEditorComponents;
   /** Props (className, style…) forwarded to each part. */
@@ -35,9 +37,10 @@ function DefaultLayout({
   showTopBar = true,
   showLayers = true,
   showSidebar = true,
+  showEmailHeader = false,
   components = {},
   slotProps = {},
-}: Pick<BetterEmailEditorProps, 'showTopBar' | 'showLayers' | 'showSidebar' | 'components' | 'slotProps'>) {
+}: Pick<BetterEmailEditorProps, 'showTopBar' | 'showLayers' | 'showSidebar' | 'showEmailHeader' | 'components' | 'slotProps'>) {
   const { layersOpen } = useEmailEditor();
   const { TopBar: Top = TopBar, LayersPanel: Layers = LayersPanel, Canvas: Main = Canvas, Sidebar: Side = Sidebar } = components;
   const withLayers = showLayers && layersOpen;
@@ -52,7 +55,7 @@ function DefaultLayout({
     >
       {showTopBar && <Top {...slotProps.topBar} />}
       {withLayers && <Layers {...slotProps.layersPanel} />}
-      <Main {...slotProps.canvas} />
+      <Main header={showEmailHeader} {...slotProps.canvas} />
       {showSidebar && <Side {...slotProps.sidebar} />}
     </div>
   );
@@ -63,12 +66,12 @@ function DefaultLayout({
  * For a custom layout, use `EditorRoot` with the individual components instead.
  */
 export const BetterEmailEditor = forwardRef<EmailEditorHandle, BetterEmailEditorProps>(function BetterEmailEditor(
-  { showTopBar, showLayers, showSidebar, components, slotProps, ...rootProps },
+  { showTopBar, showLayers, showSidebar, showEmailHeader, components, slotProps, ...rootProps },
   ref,
 ) {
   return (
     <EditorRoot ref={ref} {...rootProps}>
-      <DefaultLayout showTopBar={showTopBar} showLayers={showLayers} showSidebar={showSidebar} components={components} slotProps={slotProps} />
+      <DefaultLayout showTopBar={showTopBar} showLayers={showLayers} showSidebar={showSidebar} showEmailHeader={showEmailHeader} components={components} slotProps={slotProps} />
     </EditorRoot>
   );
 });
