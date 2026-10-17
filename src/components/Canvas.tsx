@@ -1,7 +1,7 @@
 import type { Editor } from '@tiptap/core';
 import { EditorContent } from '@tiptap/react';
 import { BubbleMenu, defaultSlashCommands, SlashCommand, type SlashCommandItem } from '@react-email/editor/ui';
-import { useEffect, useMemo, useState, type ReactNode } from 'react';
+import { useEffect, useMemo, useState, type CSSProperties, type ReactNode } from 'react';
 import { useEmailEditor } from '../context';
 import { cx, type StyleProps } from '../core/cx';
 import { CanvasOverlay } from './CanvasOverlay';
@@ -20,31 +20,49 @@ export interface CanvasProps extends StyleProps {
   children?: ReactNode;
 }
 
-interface EmailFrame {
-  width: number | undefined;
-  background: string;
+interface HeaderBox {
+  top: number;
+  left: number;
+  width: number;
+  radius: string;
 }
 
-/** Width of the email container and body background, so the header lines up with the email. */
-function useEmailFrame(editor: Editor, enabled: boolean): EmailFrame | null {
-  const [frame, setFrame] = useState<EmailFrame | null>(null);
+/**
+ * Places the header card on top of the email container, so both read as one
+ * card. The container makes room for it with a top margin
+ * (`--bree-email-header-height`); everything is measured from the DOM, so it
+ * follows any theme width, padding or radius and the device toggle.
+ */
+function useHeaderBox(editor: Editor, host: HTMLElement | null, header: HTMLElement | null): HeaderBox | null {
+  const [box, setBox] = useState<HeaderBox | null>(null);
   useEffect(() => {
-    if (!enabled) return;
+    if (!host || !header) return;
     let raf = 0;
     let observed: Element | null = null;
     const read = () => {
-      const body = editor.view.dom;
-      const container = body.querySelector(':scope > .node-container');
+      host.style.setProperty('--bree-email-header-height', `${header.offsetHeight}px`);
+      const container = editor.view.dom.querySelector(':scope > .node-container');
       if (container !== observed) {
         if (observed) resize.unobserve(observed);
         if (container) resize.observe(container);
         observed = container;
       }
+      if (!(container instanceof HTMLElement)) {
+        setBox(null);
+        return;
+      }
+      const hostRect = host.getBoundingClientRect();
+      const rect = container.getBoundingClientRect();
       const next = {
-        width: container instanceof HTMLElement ? container.offsetWidth : undefined,
-        background: getComputedStyle(body).backgroundColor,
+        top: rect.top - hostRect.top + host.scrollTop - header.offsetHeight,
+        left: rect.left - hostRect.left + host.scrollLeft,
+        width: rect.width,
+        // Top corners are squared off in the canvas (see styles.css): the bottom ones keep the theme's radius.
+        radius: getComputedStyle(container).borderBottomLeftRadius,
       };
-      setFrame((prev) => (prev?.width === next.width && prev?.background === next.background ? prev : next));
+      setBox((prev) =>
+        prev && prev.top === next.top && prev.left === next.left && prev.width === next.width && prev.radius === next.radius ? prev : next,
+      );
     };
     // Theme styles land after the transaction: read on the next frame.
     const schedule = () => {
@@ -52,22 +70,26 @@ function useEmailFrame(editor: Editor, enabled: boolean): EmailFrame | null {
       raf = requestAnimationFrame(read);
     };
     const resize = new ResizeObserver(schedule);
+    resize.observe(host);
+    resize.observe(header);
     read();
     editor.on('update', schedule);
     return () => {
       cancelAnimationFrame(raf);
       resize.disconnect();
       editor.off('update', schedule);
+      host.style.removeProperty('--bree-email-header-height');
     };
-  }, [editor, enabled]);
-  return enabled ? frame : null;
+  }, [editor, host, header]);
+  return header ? box : null;
 }
 
 /** The editable email. Scrolls on its own: give it a height through its parent or `style`. */
 export function Canvas({ overlay = true, bubbleMenu = true, slashCommands = true, header = false, className, style, children }: CanvasProps) {
   const { editor, device, t } = useEmailEditor();
   const [host, setHost] = useState<HTMLDivElement | null>(null);
-  const frame = useEmailFrame(editor, header);
+  const [headerEl, setHeaderEl] = useState<HTMLDivElement | null>(null);
+  const box = useHeaderBox(editor, host, header ? headerEl : null);
 
   const slashItems = useMemo(() => {
     if (Array.isArray(slashCommands)) return slashCommands;
@@ -75,10 +97,15 @@ export function Canvas({ overlay = true, bubbleMenu = true, slashCommands = true
   }, [slashCommands, t]);
 
   return (
-    <div ref={setHost} className={cx('bree-canvas', className)} style={style} data-device={device}>
+    <div ref={setHost} className={cx('bree-canvas', className)} style={style} data-device={device} data-email-header={header || undefined}>
       {header && (
-        <div className="bree-canvas-header" style={{ background: frame?.background }}>
-          <EmailHeader style={{ width: frame?.width }} />
+        <div
+          ref={setHeaderEl}
+          className="bree-canvas-header"
+          data-placed={box ? '' : undefined}
+          style={box ? { position: 'absolute', top: box.top, left: box.left, width: box.width, '--bree-email-header-radius': box.radius } as CSSProperties : undefined}
+        >
+          <EmailHeader />
         </div>
       )}
       <EditorContent editor={editor} className="bree-canvas-content" />

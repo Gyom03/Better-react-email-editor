@@ -230,35 +230,31 @@
   padding-bottom: 160px !important;
 }
 
-/* Subject / preview card above the email (`<Canvas header>`). Its width and
- * background follow the email, measured by Canvas. */
-.bree-canvas:has(> .bree-canvas-header) {
-  display: flex;
-  flex-direction: column;
-}
-
-.bree-canvas:has(> .bree-canvas-header) > .bree-canvas-content {
-  display: flex;
-  flex: 1 0 auto;
-  flex-direction: column;
-  min-height: 0;
-}
-
-.bree-canvas:has(> .bree-canvas-header) > .bree-canvas-content > .tiptap {
-  flex: 1 0 auto;
-  min-height: 0;
+/* Subject / preview card joined to the top of the email (`<Canvas header>`).
+ * Canvas positions it over the container, which makes room with a top margin. */
+.bree-canvas[data-email-header] .tiptap > .node-container {
+  margin-top: var(--bree-email-header-height, 0px) !important;
+  border-top-left-radius: 0 !important;
+  border-top-right-radius: 0 !important;
 }
 
 .bree-canvas-header {
-  flex: none;
-  padding: 32px 16px 0;
+  width: 600px;
+  max-width: 100%;
+  margin: 32px auto 0;
+}
+
+.bree-canvas-header[data-placed] {
+  z-index: 1; /* over the editor, under the overlay (20) */
+  margin: 0;
+  max-width: none;
 }
 
 .bree-canvas-header > .bree-email-header {
-  width: 600px;
-  max-width: 100%;
-  margin: 0 auto;
-  transition: width 0.2s ease;
+  border-bottom: 1px solid var(--bree-border);
+  border-radius: var(--bree-email-header-radius, 12px) var(--bree-email-header-radius, 12px) 0 0;
+  /* Keep the shadow off the email below. */
+  clip-path: inset(-32px -32px 0 -32px);
 }
 
 .bree-email-header {
