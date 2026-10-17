@@ -103,6 +103,7 @@ const { html, text } = await ref.current.exportEmail(); // ready-to-send email
 | `palette` | `PaletteItem[]` | `defaultPalette` | Tiles of the **Content** tab. |
 | `paletteGroups` | `PaletteGroup[]` | Layout, Content | Groups of tiles. |
 | `templates` | `TemplateItem[]` | `defaultTemplates` | Prebuilt rows of the **Blocks** tab. |
+| `fonts` | `FontOption[]` | `defaultFonts` | Fonts of the font pickers (`{ label, value }`, `value` being a CSS `font-family` stack). Defaults to Arial, Verdana, Tahoma, Georgia and Times New Roman, safe in every email client. |
 | `starterDocument` | `(i18n) => JSONContent` | demo email | Loaded by the top bar's **Template** button. |
 | `extensions` | `Extensions` | | Extra Tiptap extensions, read on mount. |
 | `theme` | `EditorThemeInput` | `defaultTheme` | Email theme for new documents, read on mount. |
@@ -137,14 +138,14 @@ Every component below accepts `className` and `style`, and must be rendered insi
 | `ContentPanel` | Screen shown when nothing is selected: tabs. Prop `tabs` picks or reorders `'content' \| 'blocks' \| 'body'` and accepts your own tabs. |
 | `ContentTab` / `PaletteTile` | Palette of draggable tiles. |
 | `BlocksTab` / `TemplateCard` | Prebuilt rows. |
-| `BodyTab` | Email-wide settings: background, width, default colors, preview text. |
+| `BodyTab` | Email-wide settings: background, width, default font and colors, preview text. |
 | `PropertiesPanel` | Properties shell: header, close button, breadcrumb. |
 | `BlockProperties` | Properties of the selected block, using the inspector registered for its type. |
 | `TextProperties` | Properties of a text selection. |
 | `PreviewDialog` | Preview and export modal. |
 | `ImageInspector`, `ButtonInspector`, `HeadingInspector`, `SocialLinksInspector`, `ColumnsInspector`, `SpacerInspector`, `HtmlInspector`, `DividerInspector`, `ContainerInspector`, `DefaultInspector` | Properties panel of each block type. |
 | `TypographyGroup`, `SpacingGroup`, `BoxGroup` | Reusable groups of controls. |
-| `Group`, `Field`, `TextInput`, `TextArea`, `NumberInput`, `RangeInput`, `ColorInput`, `Select`, `Segmented`, `AlignInput`, `PaddingInput` | Form controls, to build your own panels. |
+| `Group`, `Field`, `TextInput`, `TextArea`, `NumberInput`, `RangeInput`, `ColorInput`, `FontInput`, `Select`, `Segmented`, `AlignInput`, `PaddingInput` | Form controls, to build your own panels. |
 
 Hooks:
 

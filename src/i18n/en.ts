@@ -63,6 +63,8 @@ export const en = {
     innerPadding: 'Inner padding',
     radius: 'Corner radius',
     defaultStyles: 'Default styles',
+    font: 'Font',
+    fontDefault: 'Default (system font)',
     text: 'Text',
     headings: 'Headings',
     links: 'Links',
@@ -71,6 +73,8 @@ export const en = {
   },
   inspector: {
     typography: 'Typography',
+    font: 'Font',
+    fontDefault: 'Default (email font)',
     color: 'Color',
     size: 'Size',
     weight: 'Weight',

@@ -2,7 +2,7 @@ import type { InspectorNodeContext } from '@react-email/editor/ui';
 import type { KnownCssProperties } from '@react-email/editor/plugins';
 import { useMessages } from '../../context';
 import type { StyleProps } from '../../core/cx';
-import { AlignInput, ColorInput, Field, Group, NumberInput, PaddingInput, Select } from '../fields';
+import { AlignInput, ColorInput, Field, FontInput, Group, NumberInput, PaddingInput, Select } from '../fields';
 
 /** Reusable groups of controls, shared by the built-in inspectors. */
 
@@ -22,6 +22,13 @@ export function TypographyGroup({ ctx, alignment, setAlignment, className, style
   const i = t.inspector;
   return (
     <Group title={i.typography} className={className} style={style}>
+      <Field label={i.font}>
+        <FontInput
+          value={ctx.getStyle(css('fontFamily')) as string | undefined}
+          emptyLabel={i.fontDefault}
+          onChange={(v) => ctx.setStyle(css('fontFamily'), v)}
+        />
+      </Field>
       <Field label={i.color} stacked>
         <ColorInput value={ctx.getStyle(css('color'))} presets={ctx.presetColors} onChange={(v) => ctx.setStyle(css('color'), v)} />
       </Field>

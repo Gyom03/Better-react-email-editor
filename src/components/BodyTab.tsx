@@ -1,7 +1,8 @@
 import type { InspectorDocumentProps } from '@react-email/editor/ui';
 import { useEmailEditor } from '../context';
 import { cx, type StyleProps } from '../core/cx';
-import { ColorInput, Field, Group, NumberInput, TextInput } from './fields';
+import { getEmailFont, setEmailFont } from '../core/email-font';
+import { ColorInput, Field, FontInput, Group, NumberInput, TextInput } from './fields';
 
 /** Context given by `Inspector.Document`: global (theme) styles of the email. */
 export type DocumentContext = Parameters<NonNullable<InspectorDocumentProps['children']>>[0];
@@ -10,9 +11,9 @@ export interface BodyTabProps extends StyleProps {
   ctx: DocumentContext;
 }
 
-/** "Body" tab: email-wide settings (background, width, default colors, preview text). */
+/** "Body" tab: email-wide settings (background, width, default font and colors, preview text). */
 export function BodyTab({ ctx, className, style }: BodyTabProps) {
-  const { settings, updateSettings, t } = useEmailEditor();
+  const { editor, settings, updateSettings, t } = useEmailEditor();
   const b = t.body;
   const { findStyleValue, setGlobalStyle } = ctx;
   return (
@@ -45,6 +46,9 @@ export function BodyTab({ ctx, className, style }: BodyTabProps) {
         </Field>
       </Group>
       <Group title={b.defaultStyles}>
+        <Field label={b.font}>
+          <FontInput value={getEmailFont(editor)} emptyLabel={b.fontDefault} onChange={(v) => setEmailFont(editor, v)} />
+        </Field>
         <Field label={b.text} stacked>
           <ColorInput value={findStyleValue('paragraph', 'color')} onChange={(v) => setGlobalStyle('paragraph', 'color', v)} />
         </Field>

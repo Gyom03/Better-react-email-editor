@@ -23,6 +23,7 @@ import { appendBlocks } from './core/dnd';
 import { EmailButton } from './core/paste';
 import { createPasteHandler } from './core/paste-handler';
 import { SelectAllFix } from './core/select-all';
+import { defaultFonts, type FontOption } from './core/fonts';
 import { createDragSession, createHoverStore, type DragSession, type HoverStore } from './core/stores';
 import { en, resolveLabel, resolveMessages, type I18n, type Messages, type PartialMessages } from './i18n';
 import { defaultNodes } from './registry/default-nodes';
@@ -75,6 +76,8 @@ export interface EmailEditorContextValue extends I18n {
   palette: PaletteItem[];
   paletteGroups: PaletteGroup[];
   templates: TemplateItem[];
+  /** Fonts offered by the font pickers. */
+  fonts: FontOption[];
   starterDocument: (i18n: I18n) => JSONContent;
   uploadImage: (file: File) => Promise<{ url: string }>;
   dragSession: DragSession;
@@ -130,6 +133,8 @@ export interface EditorRootProps extends StyleProps {
   paletteGroups?: PaletteGroup[];
   /** Prebuilt rows of the "Blocks" tab. */
   templates?: TemplateItem[];
+  /** Fonts offered by the font pickers (Body tab and typography). Default: fonts installed with the main browsers. */
+  fonts?: FontOption[];
   /** Content loaded by the top bar's "Template" button. */
   starterDocument?: (i18n: I18n) => JSONContent;
   /** Extra Tiptap extensions, read on mount. */
@@ -205,6 +210,7 @@ export const EditorRoot = forwardRef<EmailEditorHandle, EditorRootProps>(functio
     palette = defaultPalette,
     paletteGroups = defaultPaletteGroups,
     templates = defaultTemplates,
+    fonts = defaultFonts,
     starterDocument = createStarterDocument,
     extensions: extraExtensions,
     theme = defaultTheme,
@@ -347,6 +353,7 @@ export const EditorRoot = forwardRef<EmailEditorHandle, EditorRootProps>(functio
       palette,
       paletteGroups,
       templates,
+      fonts,
       starterDocument,
       uploadImage: upload,
       ...stores,
@@ -357,7 +364,7 @@ export const EditorRoot = forwardRef<EmailEditorHandle, EditorRootProps>(functio
       settings,
       updateSettings,
     };
-  }, [editor, locale, t, handle, nodeMap, palette, paletteGroups, templates, starterDocument, upload, stores, device, setDevice, layersOpen, setLayersOpen, settings, updateSettings]);
+  }, [editor, locale, t, handle, nodeMap, palette, paletteGroups, templates, fonts, starterDocument, upload, stores, device, setDevice, layersOpen, setLayersOpen, settings, updateSettings]);
 
   const tiptapContext = useMemo(() => ({ editor }), [editor]);
 

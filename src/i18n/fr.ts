@@ -65,6 +65,8 @@ export const fr: Messages = {
     innerPadding: 'Marge intérieure',
     radius: 'Arrondi',
     defaultStyles: 'Styles par défaut',
+    font: 'Police',
+    fontDefault: 'Par défaut (police système)',
     text: 'Texte',
     headings: 'Titres',
     links: 'Liens',
@@ -73,6 +75,8 @@ export const fr: Messages = {
   },
   inspector: {
     typography: 'Typographie',
+    font: 'Police',
+    fontDefault: 'Par défaut (police de l’email)',
     color: 'Couleur',
     size: 'Taille',
     weight: 'Graisse',

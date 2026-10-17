@@ -74,6 +74,7 @@ export {
   TextArea,
   NumberInput,
   RangeInput,
+  FontInput,
   ColorInput,
   Select,
   Segmented,
@@ -86,6 +87,7 @@ export {
   type TextInputProps,
   type TextAreaProps,
   type NumberInputProps,
+  type FontInputProps,
   type RangeInputProps,
   type ColorInputProps,
   type SelectProps,
@@ -128,4 +130,5 @@ export {
 } from './core/dnd';
 export { EmailButton } from './core/paste';
 export { inlineStyleToObject } from './core/style-utils';
+export { defaultFonts, findFont, type FontOption } from './core/fonts';
 export { cx, type StyleProps } from './core/cx';

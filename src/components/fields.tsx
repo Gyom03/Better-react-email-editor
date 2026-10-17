@@ -2,8 +2,9 @@ import * as Popover from '@radix-ui/react-popover';
 import { useEffect, useRef, useState, type ReactNode } from 'react';
 import { HexColorInput, HexColorPicker } from 'react-colorful';
 import { AlignCenterIcon, AlignLeftIcon, AlignRightIcon, EditorFocusScope } from '@react-email/editor/ui';
-import { useMessages } from '../context';
+import { useMessages, useOptionalEmailEditor } from '../context';
 import { cx, type StyleProps } from '../core/cx';
+import { defaultFonts, findFont } from '../core/fonts';
 import { PipetteIcon } from './icons';
 
 /**
@@ -367,6 +368,38 @@ export function Select({ value, onChange, options, className, style }: SelectPro
       {options.map(([v, label]) => (
         <option key={v} value={v}>
           {label}
+        </option>
+      ))}
+    </select>
+  );
+}
+
+export interface FontInputProps extends StyleProps {
+  /** A CSS `font-family` stack, or '' for none. */
+  value: string | undefined;
+  onChange: (value: string) => void;
+  /** Label of an extra first option that clears the font (''), e.g. "Default". */
+  emptyLabel?: string;
+}
+
+/** Font picker over the editor's `fonts`. Each option is drawn in its own font. */
+export function FontInput({ value, onChange, emptyLabel, className, style }: FontInputProps) {
+  const fonts = useOptionalEmailEditor()?.fonts ?? defaultFonts;
+  const match = findFont(fonts, value);
+  // A stack set elsewhere (pasted HTML, older document) stays selectable as is.
+  const custom = value && !match ? { label: value.split(',')[0].replace(/['"]/g, '').trim(), value } : null;
+  const options = custom ? [...fonts, custom] : fonts;
+  return (
+    <select
+      className={cx('bree-input bree-select', className)}
+      style={{ fontFamily: value || undefined, ...style }}
+      value={match?.value ?? value ?? ''}
+      onChange={(e) => onChange(e.target.value)}
+    >
+      {(emptyLabel !== undefined || !value) && <option value="">{emptyLabel ?? ''}</option>}
+      {options.map((font) => (
+        <option key={font.value} value={font.value} style={{ fontFamily: font.value }}>
+          {font.label}
         </option>
       ))}
     </select>
