@@ -103,7 +103,7 @@ const { html, text } = await ref.current.exportEmail(); // ready-to-send email
 | `palette` | `PaletteItem[]` | `defaultPalette` | Tiles of the **Content** tab. |
 | `paletteGroups` | `PaletteGroup[]` | Layout, Content | Groups of tiles. |
 | `templates` | `TemplateItem[]` | `defaultTemplates` | Prebuilt rows of the **Blocks** tab. |
-| `fonts` | `FontOption[]` | `defaultFonts` | Fonts of the font pickers (`{ label, value }`, `value` being a CSS `font-family` stack). Defaults to Arial, Verdana, Tahoma, Georgia and Times New Roman, safe in every email client. |
+| `fonts` | `FontOption[]` | `defaultFonts` | Fonts of the font pickers (`{ label, value }`, `value` being a CSS `font-family` stack). Defaults to Inter, Arial, Verdana, Tahoma, Georgia and Times New Roman. A font with an `href` (stylesheet URL) is a web font: loaded in the editor and linked in the exported email when used. Only some clients (Apple Mail, iOS) load web fonts, the others fall back (Inter → Arial). |
 | `starterDocument` | `(i18n) => JSONContent` | demo email | Loaded by the top bar's **Template** button. |
 | `extensions` | `Extensions` | | Extra Tiptap extensions, read on mount. |
 | `theme` | `EditorThemeInput` | `defaultTheme` | Email theme for new documents, read on mount. |

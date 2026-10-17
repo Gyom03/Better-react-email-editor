@@ -130,5 +130,5 @@ export {
 } from './core/dnd';
 export { EmailButton } from './core/paste';
 export { inlineStyleToObject } from './core/style-utils';
-export { defaultFonts, findFont, type FontOption } from './core/fonts';
+export { defaultFonts, findFont, linkWebFonts, usedWebFonts, type FontOption } from './core/fonts';
 export { cx, type StyleProps } from './core/cx';

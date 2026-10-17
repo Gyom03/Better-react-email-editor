@@ -23,7 +23,7 @@ import { appendBlocks } from './core/dnd';
 import { EmailButton } from './core/paste';
 import { createPasteHandler } from './core/paste-handler';
 import { SelectAllFix } from './core/select-all';
-import { defaultFonts, type FontOption } from './core/fonts';
+import { defaultFonts, linkWebFonts, type FontOption } from './core/fonts';
 import { createDragSession, createHoverStore, type DragSession, type HoverStore } from './core/stores';
 import { en, resolveLabel, resolveMessages, type I18n, type Messages, type PartialMessages } from './i18n';
 import { defaultNodes } from './registry/default-nodes';
@@ -240,11 +240,13 @@ export const EditorRoot = forwardRef<EmailEditorHandle, EditorRootProps>(functio
   const onChangeRef = useRef(onChange);
   const onReadyRef = useRef(onReady);
   const uploadRef = useRef(uploadImage);
+  const fontsRef = useRef(fonts);
   useLayoutEffect(() => {
     tRef.current = t;
     onChangeRef.current = onChange;
     onReadyRef.current = onReady;
     uploadRef.current = uploadImage;
+    fontsRef.current = fonts;
   });
 
   const [device, setDevice] = useControllable(deviceProp, defaultDevice, onDeviceChange);
@@ -303,7 +305,12 @@ export const EditorRoot = forwardRef<EmailEditorHandle, EditorRootProps>(functio
   const handle = useMemo<EmailEditorHandle>(() => {
     const exportEmail = async (): Promise<EmailExport> => {
       if (!editor) return { html: '', text: '', unformattedHtml: '' };
-      return composeReactEmail({ editor, preview: settingsRef.current.previewText || undefined });
+      const result = await composeReactEmail({ editor, preview: settingsRef.current.previewText || undefined });
+      return {
+        ...result,
+        html: linkWebFonts(result.html, fontsRef.current),
+        unformattedHtml: linkWebFonts(result.unformattedHtml, fontsRef.current),
+      };
     };
     return {
       editor,
@@ -335,6 +342,18 @@ export const EditorRoot = forwardRef<EmailEditorHandle, EditorRootProps>(functio
       editor.off('update', onUpdate);
     };
   }, [editor, handle, getValue]);
+
+  // Web fonts (e.g. Inter) must be loaded in the page for the canvas to show them.
+  useEffect(() => {
+    for (const { href } of fonts) {
+      if (!href || document.querySelector(`link[data-bree-font="${CSS.escape(href)}"]`)) continue;
+      const link = document.createElement('link');
+      link.rel = 'stylesheet';
+      link.href = href;
+      link.dataset.breeFont = href;
+      document.head.appendChild(link);
+    }
+  }, [fonts]);
 
   const nodeMap = useMemo(() => new Map(nodes.map((node) => [node.type, node])), [nodes]);
 
