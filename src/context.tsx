@@ -23,6 +23,7 @@ import { appendBlocks } from './core/dnd';
 import { EmailButton } from './core/paste';
 import { createPasteHandler } from './core/paste-handler';
 import { SelectAllFix } from './core/select-all';
+import { FocusedSpellcheck } from './core/spellcheck';
 import { defaultFonts, linkWebFonts, type FontOption } from './core/fonts';
 import { createDragSession, createHoverStore, type DragSession, type HoverStore } from './core/stores';
 import { en, resolveLabel, resolveMessages, type I18n, type Messages, type PartialMessages } from './i18n';
@@ -262,6 +263,7 @@ export const EditorRoot = forwardRef<EmailEditorHandle, EditorRootProps>(functio
     StarterKit.configure({ TiptapStarterKit: { dropcursor: false }, Button: false }),
     EmailButton,
     SelectAllFix,
+    FocusedSpellcheck,
     Placeholder.configure({
       placeholder: ({ node }) => (node.type.name === 'heading' ? tRef.current.placeholder.heading : tRef.current.placeholder.paragraph),
       includeChildren: true,
