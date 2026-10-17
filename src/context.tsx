@@ -22,6 +22,7 @@ import { cx, type StyleProps } from './core/cx';
 import { appendBlocks } from './core/dnd';
 import { EmailButton } from './core/paste';
 import { createPasteHandler } from './core/paste-handler';
+import { SelectAllFix } from './core/select-all';
 import { createDragSession, createHoverStore, type DragSession, type HoverStore } from './core/stores';
 import { en, resolveLabel, resolveMessages, type I18n, type Messages, type PartialMessages } from './i18n';
 import { defaultNodes } from './registry/default-nodes';
@@ -249,6 +250,7 @@ export const EditorRoot = forwardRef<EmailEditorHandle, EditorRootProps>(functio
     // Button is swapped for a copy/paste-safe version (see core/paste.ts).
     StarterKit.configure({ TiptapStarterKit: { dropcursor: false }, Button: false }),
     EmailButton,
+    SelectAllFix,
     Placeholder.configure({
       placeholder: ({ node }) => (node.type.name === 'heading' ? tRef.current.placeholder.heading : tRef.current.placeholder.paragraph),
       includeChildren: true,
